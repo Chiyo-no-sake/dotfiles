@@ -1,0 +1,4 @@
+#!/bin/bash
+
+d=`pwd`
+cd ~/dotfiles && stow --adopt . && cd $d

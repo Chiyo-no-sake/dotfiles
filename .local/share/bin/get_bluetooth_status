@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Define full paths for robustness
+BLUETOOTHCTL="/usr/bin/bluetoothctl"
+GREP="/usr/bin/grep"
+LOG_FILE="/tmp/swaync_bt_debug.log" # A temporary log file for debugging
+
+# Execute bluetoothctl and capture its output and exit status
+# Redirect stderr (2) to stdout (1) so any errors from bluetoothctl are also captured
+OUTPUT=$("$BLUETOOTHCTL" show 2>&1)
+STATUS=$?
+
+if [ $STATUS -eq 0 ]; then
+    # bluetoothctl command itself ran successfully
+    if echo "$OUTPUT" | "$GREP" -q "Powered: yes"; then
+        echo "true"
+    else
+        echo "false"
+        # Log if "Powered: yes" is not found, but bluetoothctl ran successfully
+        echo "DEBUG: `date`: 'Powered: yes' not found." >> "$LOG_FILE"
+        echo "Output from bluetoothctl show:" >> "$LOG_FILE"
+        echo "$OUTPUT" >> "$LOG_FILE"
+        echo "--------------------------------" >> "$LOG_FILE"
+    fi
+else
+    # bluetoothctl command failed (e.g., D-Bus error, not found, etc.)
+    echo "false"
+    # Log the full error for debugging
+    echo "ERROR: `date`: bluetoothctl show failed with exit status $STATUS." >> "$LOG_FILE"
+    echo "Output from bluetoothctl show (including errors):" >> "$LOG_FILE"
+    echo "$OUTPUT" >> "$LOG_FILE"
+    echo "--------------------------------" >> "$LOG_FILE"
+fi

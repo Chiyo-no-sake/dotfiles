@@ -1,0 +1,127 @@
+@import "macchiato.css";
+
+* {
+  font-family: JetBrainsMono Nerd Font;
+  font-size: 11pt;
+  min-height: 0;
+}
+
+#waybar {
+  background: alpha(@base, 0.5);
+  color: @text;
+  margin: 0px 0px;
+}
+
+#workspaces {
+  margin: 3px;
+  background: rgba(0,0,0,0);
+  margin-left: 20px;
+}
+
+#workspaces button {
+  border-radius: 0px;
+  color: @lavender;
+  padding: 0.1rem 0.2rem;
+  border-bottom: solid 2px @text;
+}
+
+#workspaces button.active {
+  color: @red;
+  border-bottom: solid 2px @red;
+}
+
+#workspaces button:hover {
+  color: @blue;
+}
+
+#tray,
+#backlight,
+#clock,
+#battery,
+#pulseaudio,
+#custom-mic,
+#custom-lock,
+#custom-emoji,
+#custom-power {
+  background-color: @bg;
+  padding: 0.1rem 1rem;
+  margin: 0px 6px;
+  border-bottom: solid 2px @text;
+}
+
+#custom-cc {
+  background-color: @bg;
+  color: @red;
+  padding: 0.1rem 1rem;
+  border-bottom: solid 2px @blue;
+  margin-right: 1rem; 
+}
+
+#custom-music2,
+#custom-music-controls-next,
+#custom-music-controls-prev,
+#custom-music-controls-status {
+  background-color: @bg;
+  padding: 0.2rem 0.2rem;
+  margin: 0px 0px;
+  border-bottom: solid 2px @text;
+}
+
+#custom-music-controls-prev {
+  padding-left: 1rem;
+}
+
+#custom-music-controls-next {
+  margin-right: 6px;
+}
+
+#clock {
+  color: @blue;
+  margin-right: 20px;
+}
+
+#battery {
+  color: @green;
+}
+
+#battery.charging {
+  color: @green;
+}
+
+#battery.warning:not(.charging) {
+  color: @red;
+}
+
+#backlight {
+  color: @yellow;
+}
+
+#backlight, #battery {
+}
+
+#pulseaudio {
+  color: @maroon;
+}
+
+#custom-music {
+  color: @mauve;
+}
+
+#custom-lock {
+    color: @lavender;
+}
+
+#custom-power {
+    color: @red;
+}
+
+#custom-mic {
+    color: #55ff55; /* Default color for unmuted */
+}
+
+#custom-mic {
+    color: #ff5555; /* Red for muted */
+}
+
+#tray {
+}
