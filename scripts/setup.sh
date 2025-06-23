@@ -42,3 +42,6 @@ source ~/dotfiles/init.sh
 
 ## Setup open-interpreter
 ./open-interpreter.sh
+
+## Setup python envs
+./setup-pyenvs.sh

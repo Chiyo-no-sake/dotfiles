@@ -42,18 +42,35 @@
 #custom-mic,
 #custom-lock,
 #custom-emoji,
+#custom-bluetooth,
+#custom-network,
 #custom-power {
+  color: @text;
   background-color: @bg;
-  padding: 0.1rem 1rem;
+  padding: 0.1rem 14px;
   margin: 0px 6px;
   border-bottom: solid 2px @text;
 }
 
+#custom-music2 {
+  padding-left: 20px;
+}
+
+#custom-bluetooth {
+  padding-right: 17px;
+}
+
+#custom-network {
+  padding-right: 11px;
+}
+
 #custom-cc {
-  background-color: @bg;
+  background-color: alpha(@blue, 0.5);
   color: @red;
-  padding: 0.1rem 1rem;
-  border-bottom: solid 2px @blue;
+  font-size: 22;
+
+  padding: 0rem 4px 0rem 0;
+  /* border-bottom: solid 2px @blue; */
   margin-right: 1rem; 
 }
 
@@ -62,9 +79,13 @@
 #custom-music-controls-prev,
 #custom-music-controls-status {
   background-color: @bg;
-  padding: 0.2rem 0.2rem;
+  padding: 0.2rem 0.3rem;
   margin: 0px 0px;
   border-bottom: solid 2px @text;
+}
+
+#custom-music-controls-status {
+  padding-right: 0;
 }
 
 #custom-music-controls-prev {
@@ -76,7 +97,6 @@
 }
 
 #clock {
-  color: @blue;
   margin-right: 20px;
 }
 
@@ -97,10 +117,6 @@
 }
 
 #backlight, #battery {
-}
-
-#pulseaudio {
-  color: @maroon;
 }
 
 #custom-music {

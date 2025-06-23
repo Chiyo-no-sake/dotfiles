@@ -5,7 +5,18 @@
     // Choose the order of the modules
     "modules-left": ["hyprland/workspaces", "hyprland/submap"],
     "modules-center": ["hyprland/window"],
-    "modules-right": ["custom/music2", "custom/music-controls-prev", "custom/music-controls-status", "custom/music-controls-next", "pulseaudio", "tray", "clock", "custom/cc"],
+    "modules-right": [
+      "custom/music2", 
+      "custom/music-controls-prev", 
+      "custom/music-controls-status", 
+      "custom/music-controls-next", 
+      "pulseaudio", 
+      "custom/bluetooth", 
+      "custom/network",
+      //"tray", 
+      "clock", 
+      "custom/cc"
+    ],
     "hyprland/workspaces": {
          //"format": " {icon} ",
          //"format-icons": {
@@ -78,23 +89,25 @@
     },
     "pulseaudio": {
         // "scroll-step": 1, // %, can be a float
-        "format": "{icon}  {volume}%",
+        "format": "{icon} {volume}%",
         "format-muted": "",
         "format-icons": {
             "default": ["", " ", " "]
         },
-        "on-click": "pavucontrol"
+        "on-click": "$HOME/dotfiles/pyenvs/pyprland/.venv/bin/pypr toggle pavucontrol"
     },
-    "custom/mic": {
-        "exec": "~/.bin/volume-control/waybar-mic-status.sh",
-        "interval": 1,
-        "format": "{}",
-        "tooltip": true,
-        "on-click": "volume-control mic-mute",
+    "custom/bluetooth": {
+      "format": "{}",
+      "interval": 1,
+      "exec": "$HOME/.local/share/bin/get_bluetooth_status_waybar",
+      "escape": "true",
+      "on-click": "$HOME/dotfiles/pyenvs/pyprland/.venv/bin/pypr toggle blueman"
     },
-    "custom/lock": {
-        "tooltip": false,
-        "on-click": "sh -c '(sleep 0.5s; swaylock --grace 0)' & disown",
-        "format": "",
-    },
+    "custom/network": {
+      "format": "{}",
+      "interval": 1,
+      "exec": "$HOME/.local/share/bin/get_connection_status_waybar",
+      "on-click": "$HOME/dotfiles/pyenvs/pyprland/.venv/bin/pypr toggle networkmanager"
+    }
+    
 }

@@ -1,0 +1,23 @@
+[pyprland]
+plugins = ["scratchpads"]
+
+[scratchpads.blueman]
+command = "blueman-manager"
+animation = "fromTop"
+unfocus = "hide"
+position = "74% 45px"
+size = "25% 50%"
+
+[scratchpads.pavucontrol]
+command = "pavucontrol"
+animation = "fromTop"
+unfocus = "hide"
+position = "74% 45px"
+size = "25% 50%"
+
+[scratchpads.networkmanager]
+command = "nm-connection-editor"
+animation = "fromTop"
+unfocus = "hide"
+position = "74% 45px"
+size = "25% 50%"
