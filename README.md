@@ -8,7 +8,7 @@ Setup:
 2. Add coprs:
 
 ```bash
-sudo dnf copr enable -y eximapp/synology-drive solopasha/hyprland erikreider/SwayNotificationCenter atim/lazygit
+sudo dnf copr enable -y emixampp/synology-drive solopasha/hyprland erikreider/SwayNotificationCenter atim/lazygit
 ```
 
 3. Add yum VSCODE repo
