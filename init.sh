@@ -1,7 +1,22 @@
+#!/bin/zsh
+
 alias vi=nvim
 alias vim=nvim
 alias cd=z
 alias r=ranger
+
+# asdf
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+
+# custom binaries
+export PATH="$PATH:$HOME/dotfiles/.local/share/bin"
+
+# Load .env if it exists and is valid
+if [[ -f "$HOME/dotfiles/.env" ]]; then
+  set -o allexport
+  source "$HOME/dotfiles/.env" || echo "Warning: Failed to source .env"
+  set +o allexport
+fi
 
 # shorthand commands
 alias gst="git status"
@@ -11,15 +26,12 @@ alias la="ls -la"
 alias lzg="lazygit"
 alias lzd="lazydocker"
 
-eval "$(starship init zsh)"
-eval "$(zoxide init zsh)"
+# starship and zoxide (check they exist first)
+if command -v starship &> /dev/null; then
+  eval "$(starship init zsh)"
+fi
 
-# asdf
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+if command -v zoxide &> /dev/null; then
+  eval "$(zoxide init zsh)"
+fi
 
-# custom binaries
-export PATH=$PATH:$HOME/.local/share/bin
-
-set -o allexport
-source $HOME/dotfiles/.env
-set +o allexport
