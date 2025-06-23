@@ -15,3 +15,5 @@ init.sh
 # other
 .env
 .env.template
+
+README.md
