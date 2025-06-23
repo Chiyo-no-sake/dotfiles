@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# A bash script to get the correct connection status with a nerd font icon.
+#
+# This script first checks for an ethernet connection. If it is active,
+# it will display an icon for ethernet.
+# If there is no ethernet connection, it will check for a Wi-Fi connection.
+# If Wi-Fi is connected, it will display an icon corresponding to the signal strength.
+# If neither is connected, it shows a disconnected icon.
+#
+# Use the --label parameter to show a text label next to the icon.
+#
+# Make sure you have nerd fonts installed and selected in your terminal
+# for the icons to render correctly.
+
+# --- Configuration ---
+# You can change these icons to any other icons from your nerd font collection.
+ETH_ICON=" "
+WIFI_ICON_100="󰤨"
+WIFI_ICON_75="󰤥"
+WIFI_ICON_50="󰤢"
+WIFI_ICON_25="󰤟"
+DISCONNECTED_ICON="󰤮"
+
+# --- Argument Parsing ---
+SHOW_LABEL=false
+if [ "$1" == "--label" ]; then
+    SHOW_LABEL=true
+fi
+
+# --- Main Script Logic ---
+
+# Check for Ethernet connection
+# We look for an interface that starts with 'e' (like enp0s3, eth0) and is 'up'.
+eth_interface=$(ip -o -4 addr list | awk '{print $2}' | grep -E '^(en|et)')
+if [ -n "$eth_interface" ] && [ "$(cat /sys/class/net/$eth_interface/operstate)" == "up" ]; then
+    output="$ETH_ICON"
+    if [ "$SHOW_LABEL" = true ]; then
+        output="$output Ethernet"
+    fi
+    echo "$output"
+    exit 0
+fi
+
+# Check for Wi-Fi connection
+# We look for an interface that starts with 'w' (like wlp2s0, wlan0).
+wifi_interface=$(ip -o -4 addr list | awk '{print $2}' | grep -E '^(wl)')
+if [ -n "$wifi_interface" ] && [ "$(cat /sys/class/net/$wifi_interface/operstate)" == "up" ]; then
+    # Get Wi-Fi signal strength.
+    # The signal strength is usually found in /proc/net/wireless.
+    # The value is typically between 0 and 100.
+    strength=$(grep "$wifi_interface" /proc/net/wireless | awk '{print int($3 * 100 / 70)}')
+
+    # Determine icon based on signal strength
+    wifi_icon=""
+    if [ "$strength" -ge 75 ]; then
+        wifi_icon="$WIFI_ICON_100"
+    elif [ "$strength" -ge 50 ]; then
+        wifi_icon="$WIFI_ICON_75"
+    elif [ "$strength" -ge 25 ]; then
+        wifi_icon="$WIFI_ICON_50"
+    else
+        wifi_icon="$WIFI_ICON_25"
+    fi
+
+    output="$wifi_icon"
+    if [ "$SHOW_LABEL" = true ]; then
+        output="$output Wi-Fi"
+    fi
+    echo "$output"
+    exit 0
+fi
+
+# If neither Ethernet nor Wi-Fi is connected
+output="$DISCONNECTED_ICON"
+if [ "$SHOW_LABEL" = true ]; then
+    output="$output Not Connected"
+fi
+echo "$output"
+exit 0
+

@@ -126,5 +126,10 @@ $asdf set -u python 3.11.13
 $asdf set -u java openjdk-24.0.1
 $asdf set -u lazydocker latest
 
+$asdf set global nodejs 22.16.0
+$asdf set global python 3.11.13
+$asdf set global java openjdk-24.0.1
+$asdf set global lazydocker latest
+
 # npm global packages
 sudo npm i -g neovim

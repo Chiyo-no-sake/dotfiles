@@ -1,0 +1,22 @@
+#!/bin/bash
+
+HEADSET_ICON="󰋋"
+CONNECTED_ICON="󰂱"
+ACTIVE_ICON="󰂯"
+DISABLED_ICON="󰂲"
+
+if [[ $($HOME/dotfiles/.local/share/bin/get_bluetooth_status) == "true" ]]; then
+  output=$(bluetoothctl info)
+
+  if echo "$output" | grep -q "Connected: yes"; then
+    if echo "$output" | grep -q "Icon: audio-headset"; then
+      echo $HEADSET_ICON
+    else
+      echo $CONNECTED_ICON
+    fi
+  else
+    echo $ACTIVE_ICON
+  fi
+else
+  echo $DISABLED_ICON
+fi

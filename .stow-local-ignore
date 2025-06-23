@@ -4,6 +4,7 @@
 
 # runtime
 appimages
+pyenvs
 
 
 # scripts
@@ -14,3 +15,5 @@ init.sh
 # other
 .env
 .env.template
+
+README.md
