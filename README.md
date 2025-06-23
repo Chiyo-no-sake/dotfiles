@@ -46,7 +46,7 @@ hyprpm enable hyprexpo
 7. Run setup:
 
 ```bash
-. /setup.sh
+cd $HOME/dotfiles && ./setup.sh
 ```
 
 8. Install required rocks
@@ -54,7 +54,10 @@ hyprpm enable hyprexpo
 ```sh
 sudo luarocks --lua-version 5.1 install jsregexp
 ```
-```
 
+9. Stow files
+```sh
+cd $HOME/dotfiles && stow --adopt .
+```
 
 9. Reboot and enjoy
