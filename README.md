@@ -46,7 +46,7 @@ hyprpm enable hyprexpo
 7. Run setup:
 
 ```bash
-cd $HOME/dotfiles && ./setup.sh
+cd $HOME/dotfiles/scripts && ./setup.sh
 ```
 
 8. Install required rocks
