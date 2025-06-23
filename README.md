@@ -55,7 +55,9 @@ cd $HOME/dotfiles/scripts && ./setup.sh
 sudo luarocks --lua-version 5.1 install jsregexp
 ```
 
-9. Stow files
+9. Start a new shell (open new terminal)
+
+10. Stow files
 ```sh
 cd $HOME/dotfiles && stow --adopt .
 ```
