@@ -4,6 +4,8 @@ chsh -s $(which zsh)
 
 ZSHRC_FILE="$HOME/.zshrc"
 DOTFILES_INIT_FILE="$HOME/dotfiles/init.sh"
+DOTFILES_ENV_TEMPLATE_FILE="$HOME/dotfiles/.env.template"
+DOTFILES_ENV_FILE="$HOME/dotfiles/.env"
 SOURCE_COMMAND="source $DOTFILES_INIT_FILE"
 COMMENT_LINE="### Paso dotfiles settings ###"
 
@@ -27,6 +29,10 @@ else
     echo "Done. Please remember to 'source ~/.zshrc' or open a new terminal."
 fi
 
+# create the .env file from template if not already there
+if [ ! -f "$DOTFILES_ENV_FILE" ]; then
+    cp "$DOTFILES_ENV_TEMPLATE_FILE" "$DOTFILES_ENV_FILE" && echo "created .env file at ${DOTFILES_ENV_FILE}"
+fi
 
 ## Download appimages for the first time
 ./appimagesdl.sh
