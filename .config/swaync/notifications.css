@@ -40,7 +40,7 @@
 }
 
 .floating-notifications.background .notification-row .notification-background {
-  background: alpha(#000000, 0.05);
+  background: alpha(#111133, 0.5);
   border-radius: 20px;
   border: 2px solid @lavender;
   margin: 0;
@@ -134,7 +134,7 @@
   background: transparent;
   border-radius: 20px;
   color: @text;
-  background-color: alpha(#fff, 0.1);
+  background-color: alpha(#000, 0.6);
   margin: 0px;
   padding: 4px;
 }

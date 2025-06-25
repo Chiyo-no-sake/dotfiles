@@ -44,6 +44,7 @@
 #custom-emoji,
 #custom-bluetooth,
 #custom-network,
+#custom-bitwarden,
 #custom-power {
   color: @text;
   background-color: @bg;

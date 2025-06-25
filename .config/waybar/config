@@ -3,17 +3,18 @@
     "position": "top", // Waybar position (top|bottom|left|right)
     "width": "100%", // Waybar width
     // Choose the order of the modules
-    "modules-left": ["hyprland/workspaces", "hyprland/submap"],
-    "modules-center": ["hyprland/window"],
-    "modules-right": [
+    "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
+    "modules-center": [
       "custom/music2", 
       "custom/music-controls-prev", 
       "custom/music-controls-status", 
       "custom/music-controls-next", 
+    ],
+    "modules-right": [
       "pulseaudio", 
       "custom/bluetooth", 
-      "custom/network",
-      //"tray", 
+      "tray", 
+      "battery",
       "clock", 
       "custom/cc"
     ],
@@ -33,7 +34,7 @@
         "escape": true,
         "tooltip": false,
         "exec": "~/dotfiles/.config/waybar/modules/player-meta.sh",
-        "max-length": 100
+        "max-length": 60
     },
     "custom/music-controls-prev": {
         "format": "  ",
@@ -103,11 +104,4 @@
       "escape": "true",
       "on-click": "$HOME/dotfiles/pyenvs/pyprland/.venv/bin/pypr toggle blueman"
     },
-    "custom/network": {
-      "format": "{}",
-      "interval": 1,
-      "exec": "$HOME/.local/share/bin/get_connection_status_waybar",
-      "on-click": "$HOME/dotfiles/pyenvs/pyprland/.venv/bin/pypr toggle networkmanager"
-    }
-    
 }
