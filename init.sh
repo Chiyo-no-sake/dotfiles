@@ -8,6 +8,8 @@ alias r=ranger
 # asdf
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
+export EDITOR=vim
+
 
 # Load .env if it exists and is valid
 if [[ -f "$HOME/dotfiles/.env" ]]; then
