@@ -10,6 +10,7 @@ APPIMAGES_DL_DIR="$HOME/dotfiles/appimages"
 # IMPORTANT: Use direct download links for AppImages.
 APPIMAGES_LIST=(
     "https://downloads.cursor.com/production/53b99ce608cba35127ae3a050c1738a959750865/linux/x64/Cursor-1.0.0-x86_64.AppImage Cursor.AppImage"
+    "https://github.com/bitwarden/clients/releases/download/desktop-v2025.5.1/Bitwarden-2025.5.1-x86_64.AppImage Bitwarden.AppImage"
 )
 
 # Enable strict mode for robustness:

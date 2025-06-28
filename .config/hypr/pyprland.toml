@@ -5,7 +5,7 @@ plugins = ["scratchpads"]
 command = "blueman-manager"
 animation = "fromTop"
 unfocus = "hide"
-position = "74% 45px"
+position = "73% 45px"
 size = "25% 50%"
 
 [scratchpads.pavucontrol]

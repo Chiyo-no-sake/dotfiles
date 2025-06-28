@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Bitwarden
+Comment=Password Manager
+GenericName=Password Manager
+Exec=/home/kalu/dotfiles/appimages/Bitwarden.AppImage %F
+Icon=/home/kalu/.local/share/icons/bitwarden.png
+Type=Application
+StartupNotify=false
+StartupWMClass=Bitwaden
+Categories=PasswordManager;
+Keywords=bitwarden;

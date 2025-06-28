@@ -8,9 +8,7 @@ alias r=ranger
 
 # ASDF
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-
-# Custom Binaries
-export PATH="$PATH:$HOME/dotfiles/.local/share/bin"
+export EDITOR=vim
 
 # Load .env if it exists and is valid
 if [[ -f "$HOME/dotfiles/.env" ]]; then
@@ -70,3 +68,6 @@ fi
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
 fi
+
+# custom binaries
+export PATH="$HOME/dotfiles/.local/share/bin:$PATH"

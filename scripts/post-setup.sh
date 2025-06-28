@@ -1,8 +1,9 @@
 ## Setup asdf
 ./asdfsetup.sh
 
+## Setup pyprland
+./pyprland.sh
+
 ## Setup open-interpreter
 ./open-interpreter.sh
 
-## Setup python environments
-./setup-pyenvs.sh
