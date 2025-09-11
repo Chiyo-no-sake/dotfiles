@@ -35,5 +35,10 @@ if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
 fi
 
+# direnv setup
+eval "$(direnv hook zsh)"
+
+export GITHUB_TOKEN=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
+
 # custom binaries
 export PATH="$HOME/dotfiles/.local/share/bin:$PATH"
