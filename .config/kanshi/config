@@ -1,0 +1,32 @@
+output "Huawei Technologies Co. Inc. ZQE-CAA 0xC080F622" {
+    alias HOME
+    # (puoi specificare mode/position/scale se vuoi)
+}
+
+output "HP Inc. HP V27i 1CR0271RR3" {
+    alias WORK
+}
+
+output eDP-1 {
+    alias MAIN
+}
+
+profile docked_home {
+    output HOME enable
+    output MAIN disable
+    output WORK disable
+}
+
+# Profilo solo laptop (nessun monitor esterno)
+profile solo_main {
+    output MAIN enable
+    output HOME disable
+    output WORK disable
+}
+
+# Profilo con WORK ma senza HOME
+profile work_only {
+    output WORK enable
+    output MAIN enable
+    output HOME disable
+}

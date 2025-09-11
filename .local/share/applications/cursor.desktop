@@ -8,7 +8,7 @@ Type=Application
 StartupNotify=false
 StartupWMClass=Cursor
 Categories=TextEditor;Development;IDE;
-MimeType=application/x-cursor-workspace;
+MimeType=application/x-cursor-workspace;x-scheme-handler/cursor;
 Actions=new-empty-window;
 Keywords=cursor;
 
