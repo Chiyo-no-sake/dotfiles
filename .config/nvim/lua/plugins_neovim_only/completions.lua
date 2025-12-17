@@ -12,6 +12,11 @@ return {
 	},
 	{
 		"hrsh7th/nvim-cmp",
+		url = "https://github.com/hrsh7th/nvim-cmp.git",
+		dependencies = {
+			"L3MON4D3/LuaSnip",
+			"saadparwaiz1/cmp_luasnip",
+		},
 		config = function()
 			local cmp = require("cmp")
 			local lspkind = require("lspkind")
