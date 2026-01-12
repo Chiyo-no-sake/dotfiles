@@ -76,3 +76,4 @@ export GITHUB_TOKEN=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
 
 # custom binaries
 export PATH="$HOME/dotfiles/.local/share/bin:$PATH"
+export PATH="/home/kalu/.local/bin:$PATH"

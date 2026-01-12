@@ -56,7 +56,7 @@ return {
 					["<C-k>"] = cmp.mapping.select_prev_item(),
 					["<C-Space>"] = cmp.mapping.complete(),
 					["<C-e>"] = cmp.mapping.abort(),
-					["<CR>"] = cmp.mapping.confirm({ select = false, behavior = cmp.ConfirmBehavior.Replace }),
+					["<CR>"] = cmp.mapping.confirm({ select = true, behavior = cmp.ConfirmBehavior.Replace }),
 				}),
 				sources = cmp.config.sources({
 					{ name = "nvim_lsp" },

@@ -5,25 +5,29 @@ return {
 		version = false, -- Never use "*", always use latest
 		build = "make",
 		opts = {
-			provider = "openrouter",
+			provider = "gemini",
 			providers = {
-				openrouter = {
-					__inherited_from = "openai",
-					endpoint = "https://openrouter.ai/api/v1",
-					api_key_name = "OPENROUTER_API_KEY",
-					model = "google/gemini-2.5-flash",
-					extra_request_body = {
-						temperature = 0,
-						max_tokens = 4096,
-					},
-					extra_headers = {
-						["HTTP-Referer"] = "https://github.com/yetone/avante.nvim",
-						["X-Title"] = "Avante.nvim",
+				gemini = {
+					model = "gemini-2.5-flash-lite",
+					api_key_name = "AVANTE_GEMINI_API_KEY",
+					timeout = 30000,
+					temperature = 0,
+					max_tokens = 8192,
+				},
+				claude = {},
+			},
+			acp_providers = {
+				["claude-code"] = {
+					command = "npx",
+					args = { "@zed-industries/claude-code-acp" },
+					env = {
+						NODE_NO_WARNINGS = "1",
+						ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY"),
 					},
 				},
 			},
 			behaviour = {
-				auto_suggestions = false, -- Disabled by default (expensive)
+				auto_suggestions = true, -- Disabled by default (expensive)
 				auto_set_keymaps = true,
 				auto_set_highlight_group = true,
 				auto_apply_diff_after_generation = false,

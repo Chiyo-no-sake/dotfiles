@@ -35,13 +35,8 @@ return {
 			capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
 
 			local function organize_imports()
-				-- use pyright for python files, tsserver for everything else
-				if vim.bo.filetype == "python" then
-					vim.lsp.buf.execute_command({
-						command = "pyright.organizeimports",
-						arguments = { vim.uri_from_bufnr(0) },
-					})
-				else
+				-- ty doesn't support organize imports yet, only for TypeScript
+				if vim.bo.filetype ~= "python" then
 					vim.lsp.buf.execute_command({
 						command = "_typescript.organizeImports",
 						arguments = { vim.api.nvim_buf_get_name(0) },
@@ -128,17 +123,6 @@ return {
 						},
 					},
 				},
-				pyright = {
-					settings = {
-						python = {
-							analysis = {
-								diagnosticSeverityOverrides = {
-									reportOptionalMemberAccess = "none",
-								},
-							},
-						},
-					},
-				},
 				jsonls = {},
 				helm_ls = {},
 				yamlls = {
@@ -181,7 +165,6 @@ return {
 				"yamlls",
 				"typescript-language-server",
 				"js-debug-adapter",
-				"chrome-debug-adapter",
 			})
 
 			require("mason-tool-installer").setup({
@@ -191,7 +174,8 @@ return {
 			require("mason-lspconfig").setup({
 				handlers = {
 					function(server_name)
-						if server_name == "vuels" then
+						-- Skip servers we don't want mason-lspconfig to auto-attach
+						if server_name == "vuels" or server_name == "pyright" then
 							return
 						end
 
@@ -202,6 +186,15 @@ return {
 					end,
 				},
 			})
+
+			-- ty language server (installed via uv, not Mason)
+			vim.lsp.config("ty", {
+				cmd = { vim.env.HOME .. "/.local/bin/ty", "server" },
+			})
+			vim.lsp.enable("ty")
+
+			-- Disable pyright (we use ty instead)
+			vim.lsp.enable("pyright", false)
 
 			---- LSP keybindings ----
 			-- vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Show hover doc" })
