@@ -1,6 +1,7 @@
 return {
 	{
 		"yetone/avante.nvim",
+		enabled = false,
 		event = "VeryLazy",
 		version = false, -- Never use "*", always use latest
 		build = "make",

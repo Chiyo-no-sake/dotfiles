@@ -17,7 +17,7 @@ get_icon() {
 		echo "$iDIR/volume-low.png"
 	elif [[ ("$current" -ge "30") && ("$current" -le "60") ]]; then
 		echo "$iDIR/volume-mid.png"
-	elif [[ ("$current" -ge "60") && ("$current" -le "100") ]]; then
+	elif [[ "$current" -ge "60" ]]; then
 		echo "$iDIR/volume-high.png"
 	fi
 }
@@ -29,7 +29,7 @@ notify_user() {
 
 # Increase Volume
 inc_volume() {
-	pamixer -i 5 && notify_user
+	pamixer --allow-boost -i 5 --set-limit 200 && notify_user
 }
 
 # Decrease Volume

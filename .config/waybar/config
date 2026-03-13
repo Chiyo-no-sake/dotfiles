@@ -11,11 +11,14 @@
       "custom/music-controls-next", 
     ],
     "modules-right": [
-      "pulseaudio", 
-      "custom/bluetooth", 
-      "tray", 
+      "custom/cpu-sparkline",
+      "memory",
+      "custom/network-speed",
+      "pulseaudio",
+      "custom/bluetooth",
+      "tray",
       "battery",
-      "clock", 
+      "clock",
       "custom/cc"
     ],
     "hyprland/workspaces": {
@@ -104,4 +107,23 @@
       "escape": "true",
       "on-click": "$HOME/dotfiles/pyenvs/pyprland/.venv/bin/pypr toggle blueman"
     },
+    "custom/cpu-sparkline": {
+      "format": "{}",
+      "interval": 2,
+      "exec": "$HOME/dotfiles/.config/waybar/modules/cpu-sparkline.sh",
+      "tooltip": false
+    },
+    "memory": {
+      "format": "{icon} {percentage}%",
+      "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"],
+      "tooltip-format": "{used:0.1f}G / {total:0.1f}G ({percentage}%)",
+      "interval": 5
+    },
+    "custom/network-speed": {
+      "format": "{}",
+      "interval": 2,
+      "exec": "$HOME/dotfiles/.config/waybar/modules/network-speed.sh",
+      "tooltip": false,
+      "min-length": 16
+    }
 }

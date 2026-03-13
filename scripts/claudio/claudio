@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONTAINER_IMAGE="ubuntu:24.04"
+CONTAINER_NAME="claudio-$$"
+EXTRA_MOUNTS=()
+WORKDIR="/workspace"
+
+usage() {
+    cat <<'EOF'
+Usage: claudio [OPTIONS] [-- CLAUDE_ARGS...]
+
+Run Claude Code with full permissions inside a sandboxed Ubuntu container.
+
+Options:
+  -v, --volume MOUNT    Docker volume mount (e.g. /host/path:/container/path)
+  -w, --workdir DIR     Host directory to mount as /workspace (default: $PWD)
+  -i, --image IMAGE     Container image (default: ubuntu:24.04)
+  -h, --help            Show this help
+
+Files matching patterns in .claudioignore (in the working directory) are
+excluded from the workspace mount.
+
+Examples:
+  claudio
+  claudio -v /data:/data
+  claudio -w ~/project -- --model sonnet
+EOF
+    exit 0
+}
+
+HOST_WORKDIR="$PWD"
+CLAUDE_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -v|--volume)
+            EXTRA_MOUNTS+=("-v" "$2")
+            shift 2
+            ;;
+        -w|--workdir)
+            HOST_WORKDIR="$2"
+            shift 2
+            ;;
+        -i|--image)
+            CONTAINER_IMAGE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            ;;
+        --)
+            shift
+            CLAUDE_ARGS=("$@")
+            break
+            ;;
+        *)
+            CLAUDE_ARGS=("$@")
+            break
+            ;;
+    esac
+done
+
+HOST_WORKDIR="$(realpath "$HOST_WORKDIR")"
+
+# Build exclude list from .claudioignore
+build_excludes() {
+    local ignorefile="$HOST_WORKDIR/.claudioignore"
+    local excludes=()
+    if [[ -f "$ignorefile" ]]; then
+        while IFS= read -r pattern || [[ -n "$pattern" ]]; do
+            pattern="${pattern%%#*}"       # strip comments
+            pattern="${pattern#"${pattern%%[![:space:]]*}"}"  # trim leading
+            pattern="${pattern%"${pattern##*[![:space:]]}"}"  # trim trailing
+            [[ -z "$pattern" ]] && continue
+            excludes+=("--exclude=$pattern")
+        done < "$ignorefile"
+    fi
+    printf '%s\n' "${excludes[@]}"
+}
+
+# Build the container image with claude installed
+build_image() {
+    local tag="claudio-sandbox:latest"
+    local dockerfile
+    dockerfile="$(mktemp)"
+    cat > "$dockerfile" <<DOCKERFILE
+FROM ${CONTAINER_IMAGE}
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    curl ca-certificates git sudo && \\
+    rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \\
+    apt-get install -y nodejs && \\
+    rm -rf /var/lib/apt/lists/*
+RUN npm install -g @anthropic-ai/claude-code
+RUN useradd -m -s /bin/bash claude
+USER claude
+WORKDIR ${WORKDIR}
+DOCKERFILE
+    docker build -q -t "$tag" -f "$dockerfile" . >/dev/null
+    rm -f "$dockerfile"
+    echo "$tag"
+}
+
+# Sync workspace into a volume, respecting .claudioignore
+sync_workspace() {
+    local vol="$1"
+    local excludes
+    excludes="$(build_excludes)"
+
+    # Create temp container to populate the volume
+    docker run --rm -v "$HOST_WORKDIR:/src:ro" -v "$vol:$WORKDIR" \
+        "$CONTAINER_IMAGE" bash -c "
+        apt-get update -qq && apt-get install -y -qq rsync >/dev/null 2>&1
+        rsync -a $excludes /src/ $WORKDIR/
+        chown -R 1000:1000 $WORKDIR
+    "
+}
+
+# Copy results back from volume to host
+sync_back() {
+    local vol="$1"
+    docker run --rm -v "$HOST_WORKDIR:/dst" -v "$vol:$WORKDIR:ro" \
+        "$CONTAINER_IMAGE" bash -c "
+        apt-get update -qq && apt-get install -y -qq rsync >/dev/null 2>&1
+        rsync -a --delete $WORKDIR/ /dst/
+    "
+}
+
+main() {
+    echo "Building sandbox image..."
+    local image
+    image="$(build_image)"
+
+    echo "Syncing workspace (respecting .claudioignore)..."
+    local vol="claudio-workspace-$$"
+    docker volume create "$vol" >/dev/null
+
+    sync_workspace "$vol"
+
+    echo "Starting Claude Code in sandbox..."
+    docker run -it --rm \
+        --name "$CONTAINER_NAME" \
+        --hostname claudio \
+        --security-opt no-new-privileges \
+        --cap-drop ALL \
+        --cap-add NET_RAW \
+        -v "$vol:$WORKDIR" \
+        -v "$HOME/.claude:/home/claude/.claude" \
+        "${EXTRA_MOUNTS[@]+"${EXTRA_MOUNTS[@]}"}" \
+        "$image" \
+        claude --dangerously-skip-permissions "${CLAUDE_ARGS[@]+"${CLAUDE_ARGS[@]}"}"
+
+    local rc=$?
+
+    echo "Syncing results back to host..."
+    sync_back "$vol"
+
+    echo "Cleaning up..."
+    docker volume rm "$vol" >/dev/null 2>&1 || true
+
+    return $rc
+}
+
+main

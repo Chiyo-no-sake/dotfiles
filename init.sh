@@ -77,3 +77,7 @@ export GITHUB_TOKEN=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
 # custom binaries
 export PATH="$HOME/dotfiles/.local/share/bin:$PATH"
 export PATH="/home/kalu/.local/bin:$PATH"
+alias claudee="claude --dangerously-skip-permissions"
+
+export SARTIQ_YOUTRACK_USER_TOKEN="perm-cGFzbw==.NDktOQ==.bJmno3pu6BibeUBuRTUGaD1xu7HIUM"
+export SARTIQ_DOCS_TOKEN="bf914ae28a3920ef4cdbbcdecbeaaf8a3cdd2ccdaaaf786557a13a7965d62c54"

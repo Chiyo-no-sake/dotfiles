@@ -22,6 +22,7 @@
   border-radius: 0px;
   color: @lavender;
   padding: 0.1rem 0.2rem;
+  margin: 0px 4px;
   border-bottom: solid 2px @text;
 }
 
@@ -44,6 +45,9 @@
 #custom-emoji,
 #custom-bluetooth,
 #custom-network,
+#custom-cpu-sparkline,
+#memory,
+#custom-network-speed,
 #custom-bitwarden,
 #custom-power {
   color: @text;
@@ -62,6 +66,10 @@
 }
 
 #custom-network {
+  padding-right: 11px;
+}
+
+#custom-network-speed {
   padding-right: 11px;
 }
 

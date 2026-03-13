@@ -40,18 +40,8 @@ return {
 				end,
 			})
 
-			-- Folds with treesitter
-			vim.cmd("set nofoldenable")
-			vim.api.nvim_create_autocmd("FileType", {
-				callback = function()
-					if pcall(vim.treesitter.start) then
-						vim.wo.foldmethod = "expr"
-						vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-					else
-						vim.wo.foldmethod = "syntax"
-					end
-				end,
-			})
+			-- Disable folding
+			vim.o.foldenable = false
 
 			-- Setup textobjects
 			require("nvim-treesitter-textobjects").setup({
