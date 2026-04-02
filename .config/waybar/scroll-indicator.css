@@ -1,0 +1,13 @@
+window#waybar.scrollbar #custom-scroll-indicator {
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0.15) 0%,
+    rgba(255,255,255,0.15) 0.0%,
+    rgba(255,255,255,0.6) 0.0%,
+    rgba(255,255,255,0.6) 34.8%,
+    rgba(255,255,255,0.15) 34.8%,
+    rgba(255,255,255,0.15) 100%
+  );
+  border-radius: 2px;
+  min-height: 6px;
+}

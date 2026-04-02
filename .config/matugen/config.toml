@@ -1,0 +1,32 @@
+[config]
+fallback_color = "#8aadf4"
+prefer = "closest-to-fallback"
+scheme_type = "scheme-vibrant"
+
+[config.wallpaper]
+set = false  # We handle wallpaper ourselves via swww
+command = "swww img {{ image }}"
+
+[templates.hyprland]
+input_path = "~/.config/matugen/templates/hyprland.conf"
+output_path = "~/.config/hypr/colors.conf"
+
+[templates.waybar]
+input_path = "~/.config/matugen/templates/waybar.css"
+output_path = "~/.config/waybar/colors.css"
+
+[templates.kitty]
+input_path = "~/.config/matugen/templates/kitty.conf"
+output_path = "~/.config/kitty/colors-dynamic.conf"
+
+[templates.rofi]
+input_path = "~/.config/matugen/templates/rofi.rasi"
+output_path = "~/.config/rofi/colors/colors.rasi"
+
+[templates.fuzzel]
+input_path = "~/.config/matugen/templates/fuzzel.ini"
+output_path = "~/.config/fuzzel/colors.ini"
+
+[templates.swaync]
+input_path = "~/.config/matugen/templates/swaync.css"
+output_path = "~/.config/swaync/colors.css"

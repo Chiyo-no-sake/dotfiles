@@ -6,7 +6,7 @@
  * Configuration For Rofi Version: 1.7.3
  **/
 
-@import "catppuccin-mocha.rasi"
+/* catppuccin-mocha.rasi kept as fallback, now using dynamic colors */
 
 configuration {
 	/*---------- General setting ----------*/

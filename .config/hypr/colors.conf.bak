@@ -1,0 +1,85 @@
+
+$primary = rgb(a3c9fe)
+$primaryAlpha = a3c9fe
+
+$secondary = rgb(bcc7db)
+$secondaryAlpha = bcc7db
+
+$tertiary = rgb(d8bde3)
+$tertiaryAlpha = d8bde3
+
+$surface = rgb(111418)
+$surfaceAlpha = 111418
+
+$surface_variant = rgb(43474e)
+$surface_variantAlpha = 43474e
+
+$on_surface = rgb(e1e2e8)
+$on_surfaceAlpha = e1e2e8
+
+$on_surface_variant = rgb(c3c6cf)
+$on_surface_variantAlpha = c3c6cf
+
+$background = rgb(111418)
+$backgroundAlpha = 111418
+
+$on_background = rgb(e1e2e8)
+$on_backgroundAlpha = e1e2e8
+
+$error = rgb(ffb4ab)
+$errorAlpha = ffb4ab
+
+$on_primary = rgb(00315c)
+$on_primaryAlpha = 00315c
+
+$on_secondary = rgb(263141)
+$on_secondaryAlpha = 263141
+
+$on_tertiary = rgb(3c2947)
+$on_tertiaryAlpha = 3c2947
+
+$primary_container = rgb(1e4876)
+$primary_containerAlpha = 1e4876
+
+$secondary_container = rgb(3c4758)
+$secondary_containerAlpha = 3c4758
+
+$tertiary_container = rgb(543f5e)
+$tertiary_containerAlpha = 543f5e
+
+$surface_bright = rgb(37393e)
+$surface_brightAlpha = 37393e
+
+$surface_dim = rgb(111418)
+$surface_dimAlpha = 111418
+
+$outline = rgb(8d9199)
+$outlineAlpha = 8d9199
+
+$outline_variant = rgb(43474e)
+$outline_variantAlpha = 43474e
+
+$inverse_surface = rgb(e1e2e8)
+$inverse_surfaceAlpha = e1e2e8
+
+$inverse_on_surface = rgb(2e3035)
+$inverse_on_surfaceAlpha = 2e3035
+
+$inverse_primary = rgb(39608f)
+$inverse_primaryAlpha = 39608f
+
+# Legacy aliases for hyprlock compatibility
+$text = $on_surface
+$textAlpha = $on_surfaceAlpha
+$base = $surface
+$baseAlpha = $surfaceAlpha
+$surface0 = $surface_variant
+$surface0Alpha = $surface_variantAlpha
+$red = $error
+$redAlpha = $errorAlpha
+$yellow = rgb(eed49f)
+$yellowAlpha = eed49f
+$mauve = $primary
+$mauveAlpha = $primaryAlpha
+$crust = $background
+$crustAlpha = $backgroundAlpha

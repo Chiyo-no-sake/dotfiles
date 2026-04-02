@@ -1,14 +1,15 @@
+[
 {
-    "layer": "top", // Waybar at top layer
-    "position": "top", // Waybar position (top|bottom|left|right)
-    "width": "100%", // Waybar width
+    "name": "main",
+    "layer": "top",
+    "position": "top",
+    "width": "100%",
     // Choose the order of the modules
     "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
     "modules-center": [
-      "custom/music2", 
-      "custom/music-controls-prev", 
-      "custom/music-controls-status", 
-      "custom/music-controls-next", 
+      "custom/layout",
+      "clock",
+      "custom/win-count",
     ],
     "modules-right": [
       "custom/cpu-sparkline",
@@ -17,8 +18,8 @@
       "pulseaudio",
       "custom/bluetooth",
       "tray",
+      "custom/power-profile",
       "battery",
-      "clock",
       "custom/cc"
     ],
     "hyprland/workspaces": {
@@ -71,11 +72,27 @@
         "format": " 󰄛 ",
         "on-click": "swaync-client -t"
     },
+    "custom/layout": {
+        "format": "{}",
+        "interval": 1,
+        "exec": "$HOME/dotfiles/.config/waybar/modules/layout-toggle.sh",
+        "on-click": "$HOME/dotfiles/.config/waybar/modules/layout-toggle.sh toggle",
+        "exec-on-event": true,
+        "return-type": "json",
+        "tooltip": true
+    },
     "clock": {
         "timezone": "Europe/Rome",
+        "locale": "it_IT.UTF-8",
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format-alt": "󰃶 {:%d/%m/%Y}",
-        "format": " {:%H:%M}"
+        "format-alt": "{:%d/%m/%Y}",
+        "format": "{:%a %d/%m - %H:%M}"
+    },
+    "custom/win-count": {
+        "format": "{}",
+        "interval": 1,
+        "exec": "hyprctl activeworkspace -j | jq -r '.windows'",
+        "tooltip": false
     },
     "backlight": {
         "format": " {percent}%"
@@ -119,6 +136,13 @@
       "tooltip-format": "{used:0.1f}G / {total:0.1f}G ({percentage}%)",
       "interval": 5
     },
+    "custom/power-profile": {
+      "format": "{}",
+      "interval": 5,
+      "exec": "/home/kalu/dotfiles/.config/waybar/modules/power-profile.sh",
+      "on-click": "/home/kalu/dotfiles/.config/waybar/modules/power-profile.sh cycle",
+      "exec-on-event": true
+    },
     "custom/network-speed": {
       "format": "{}",
       "interval": 2,
@@ -127,3 +151,4 @@
       "min-length": 16
     }
 }
+]

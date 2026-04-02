@@ -1,14 +1,14 @@
-@import "macchiato.css";
+@import "colors.css";
 
 * {
   font-family: JetBrainsMono Nerd Font;
-  font-size: 11pt;
+  font-size: 13pt;
   min-height: 0;
 }
 
 #waybar {
-  background: alpha(@base, 0.5);
-  color: @text;
+  background: alpha(@surface, 0.5);
+  color: @on_surface;
   margin: 0px 0px;
 }
 
@@ -20,19 +20,19 @@
 
 #workspaces button {
   border-radius: 0px;
-  color: @lavender;
+  color: @on_surface_variant;
   padding: 0.1rem 0.2rem;
   margin: 0px 4px;
-  border-bottom: solid 2px @text;
+  border-bottom: solid 2px @outline_variant;
 }
 
 #workspaces button.active {
-  color: @red;
-  border-bottom: solid 2px @red;
+  color: @primary;
+  border-bottom: solid 2px @primary;
 }
 
 #workspaces button:hover {
-  color: @blue;
+  color: @tertiary;
 }
 
 #tray,
@@ -49,19 +49,106 @@
 #memory,
 #custom-network-speed,
 #custom-bitwarden,
-#custom-power {
-  color: @text;
-  background-color: @bg;
+#custom-power,
+#custom-power-profile {
+  color: @on_surface;
+  background-color: alpha(@surface_container, 0.0);
   padding: 0.1rem 14px;
   margin: 0px 6px;
-  border-bottom: solid 2px @text;
+  border-bottom: solid 2px @outline_variant;
 }
 
-#custom-music2 {
-  padding-left: 20px;
+#clock {
+  color: @primary;
+  border-bottom: solid 2px @primary;
+}
+
+#custom-layout {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+  padding: 0.1rem 14px;
+  margin: 0px 6px;
+}
+
+#custom-layout.scrolling {
+  color: @tertiary;
+  border-bottom: solid 2px @tertiary;
+}
+
+#window {
+  color: @on_surface_variant;
+  border-bottom: solid 2px @outline_variant;
+  padding: 0.1rem 14px;
+  margin: 0px 6px;
+}
+
+#custom-win-count {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+  padding: 0.1rem 10px;
+  margin: 0px 6px;
+  font-size: 11pt;
+}
+
+#pulseaudio {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+}
+
+#battery {
+  color: @tertiary;
+  border-bottom: solid 2px @tertiary;
+}
+
+#battery.charging {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+}
+
+#battery.warning:not(.charging) {
+  color: @error;
+  border-bottom: solid 2px @error;
+}
+
+#memory {
+  color: @tertiary;
+  border-bottom: solid 2px @tertiary;
+}
+
+#custom-cpu-sparkline {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+}
+
+#custom-network-speed {
+  color: @on_surface_variant;
+  border-bottom: solid 2px @outline_variant;
+  padding-right: 11px;
+}
+
+#backlight {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+}
+
+#custom-power-profile {
+  color: @tertiary;
+  border-bottom: solid 2px @tertiary;
+}
+
+#custom-power-profile.performance {
+  color: @error;
+  border-bottom: solid 2px @error;
+}
+
+#custom-power-profile.power-saver {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
 }
 
 #custom-bluetooth {
+  color: @primary;
+  border-bottom: solid 2px @primary;
   padding-right: 17px;
 }
 
@@ -69,28 +156,27 @@
   padding-right: 11px;
 }
 
-#custom-network-speed {
-  padding-right: 11px;
+#custom-music2 {
+  padding-left: 20px;
 }
 
 #custom-cc {
-  background-color: alpha(@blue, 0.5);
-  color: @red;
-  font-size: 22;
-
+  background-color: alpha(@primary_container, 0.5);
+  color: @on_primary_container;
+  font-size: 22px;
   padding: 0rem 4px 0rem 0;
-  /* border-bottom: solid 2px @blue; */
-  margin-right: 1rem; 
+  margin-right: 1rem;
 }
 
 #custom-music2,
 #custom-music-controls-next,
 #custom-music-controls-prev,
 #custom-music-controls-status {
-  background-color: @bg;
+  background-color: alpha(@surface_container, 0.0);
+  color: @primary;
   padding: 0.2rem 0.3rem;
   margin: 0px 0px;
-  border-bottom: solid 2px @text;
+  border-bottom: solid 2px @primary;
 }
 
 #custom-music-controls-status {
@@ -105,48 +191,54 @@
   margin-right: 6px;
 }
 
-#clock {
-  margin-right: 20px;
-}
-
-#battery {
-  color: @green;
-}
-
-#battery.charging {
-  color: @green;
-}
-
-#battery.warning:not(.charging) {
-  color: @red;
-}
-
-#backlight {
-  color: @yellow;
-}
-
-#backlight, #battery {
-}
-
-#custom-music {
-  color: @mauve;
-}
-
 #custom-lock {
-    color: @lavender;
+    color: @tertiary;
+    border-bottom: solid 2px @tertiary;
 }
 
 #custom-power {
-    color: @red;
+    color: @error;
+    border-bottom: solid 2px @error;
 }
 
-#custom-mic {
-    color: #55ff55; /* Default color for unmuted */
+#custom-mic.unmuted {
+    color: @secondary;
+    border-bottom: solid 2px @secondary;
 }
 
-#custom-mic {
-    color: #ff5555; /* Red for muted */
+#custom-mic.muted {
+    color: @error;
+    border-bottom: solid 2px @error;
 }
 
 #tray {
+}
+
+/* Scroll indicator bar (bottom) — browser-style scrollbar for scrolling layout */
+window#waybar.scrollbar {
+  background: transparent;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+window#waybar.scrollbar #custom-scroll-indicator {
+  background: transparent;
+  font-size: 7pt;
+  letter-spacing: -1px;
+  padding: 0;
+  margin: 0;
+  min-height: 10px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+window#waybar.scrollbar #custom-scroll-indicator.hidden {
+  min-height: 0;
+  font-size: 0;
+  opacity: 0;
+}
+
+window#waybar.scrollbar #custom-scroll-indicator:hover {
+  opacity: 1;
 }
