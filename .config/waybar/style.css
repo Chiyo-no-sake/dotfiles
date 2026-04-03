@@ -38,6 +38,7 @@
 #tray,
 #backlight,
 #clock,
+#custom-visualizer,
 #battery,
 #pulseaudio,
 #custom-mic,
@@ -209,6 +210,16 @@
 #custom-mic.muted {
     color: @error;
     border-bottom: solid 2px @error;
+}
+
+#custom-visualizer {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+}
+
+#custom-visualizer.off {
+  color: @outline_variant;
+  border-bottom: solid 2px @outline_variant;
 }
 
 #tray {

@@ -31,6 +31,31 @@ output_path = "~/.config/fuzzel/colors.ini"
 input_path = "~/.config/matugen/templates/swaync.css"
 output_path = "~/.config/swaync/colors.css"
 
+[templates.gtk4]
+input_path = "~/.config/matugen/templates/gtk4-colors.css"
+output_path = "~/.config/gtk-4.0/colors.css"
+
+[templates.gtk3]
+input_path = "~/.config/matugen/templates/gtk3-colors.css"
+output_path = "~/.config/gtk-3.0/colors.css"
+
+[templates.kdeglobals]
+input_path = "~/.config/matugen/templates/kdeglobals"
+output_path = "~/.config/matugen/generated/kdeglobals"
+post_hook = "~/dotfiles/scripts/runtime/merge-kdeglobals.sh ~/.config/matugen/generated/kdeglobals"
+
+[templates.kde-colorscheme]
+input_path = "~/.config/matugen/templates/kdeglobals"
+output_path = "~/.local/share/color-schemes/Nothing.colors"
+
+[templates.kvantum]
+input_path = "~/.config/matugen/templates/kvantum-colors.kvconfig"
+output_path = "~/.config/Kvantum/matugen/matugen.kvconfig"
+
+[templates.qt6ct]
+input_path = "~/.config/matugen/templates/qt6ct-colors.conf"
+output_path = "~/.config/qt6ct/colors/matugen.conf"
+
 [templates.cavalier]
 input_path = "~/.config/matugen/templates/cavalier.json"
 output_path = "~/.var/app/org.nickvision.cavalier/config/Nickvision Cavalier/config.json"

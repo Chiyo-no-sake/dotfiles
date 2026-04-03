@@ -77,13 +77,13 @@ def detect_power_profile():
         return "balanced"
 
 def apply_power_scaling(framerate):
-    """Scale framerate based on power profile."""
+    """Return fixed framerate based on power profile."""
     profile = detect_power_profile()
     if profile == "power-saver":
-        return max(30, framerate // 3)
+        return 40
     elif profile == "balanced":
-        return max(30, framerate // 2)
-    return framerate  # performance: full refresh rate
+        return 60
+    return 90  # performance
 
 if _args.framerate <= 0:
     _args.framerate = apply_power_scaling(detect_refresh_rate())
@@ -92,6 +92,8 @@ if _args.framerate <= 0:
 bar_values = [0.0] * _args.bars
 win = None
 drawing_area = None
+_gradient_phase = 0.0  # 0..1, shifts the gradient horizontally
+GRADIENT_SPEED = 0.15  # full cycles per second
 
 
 def parse_hypr_colors(path):
@@ -116,16 +118,17 @@ def parse_hypr_colors(path):
 def get_theme_colors():
     c = parse_hypr_colors(COLORS_FILE)
     primary = c.get("primary", (0.95, 0.75, 0.43))
+    secondary = c.get("secondary", (0.90, 0.74, 0.75))
     tertiary = c.get("tertiary", (0.71, 0.81, 0.64))
-    return primary, tertiary
+    return primary, secondary, tertiary
 
 
-FG_PRIMARY, FG_TERTIARY = get_theme_colors()
+FG_PRIMARY, FG_SECONDARY, FG_TERTIARY = get_theme_colors()
 
 
 def reload_colors():
-    global FG_PRIMARY, FG_TERTIARY
-    FG_PRIMARY, FG_TERTIARY = get_theme_colors()
+    global FG_PRIMARY, FG_SECONDARY, FG_TERTIARY
+    FG_PRIMARY, FG_SECONDARY, FG_TERTIARY = get_theme_colors()
 
 
 def interpolate_color(c1, c2, t):
@@ -186,16 +189,27 @@ def draw_func(_area, cr, width, height):
             points_top.append((x, center_y + max_h * 0.5 - h * 2))
             points_bot.append((x, center_y + max_h * 0.5))
 
-    # Gradients
-    gradient = cairo.LinearGradient(0, 0, width, 0)
-    r1, g1, b1 = FG_PRIMARY
-    r2, g2, b2 = FG_TERTIARY
-    gradient.add_color_stop_rgba(0, r1, g1, b1, _args.opacity)
-    gradient.add_color_stop_rgba(1, r2, g2, b2, _args.opacity)
+    # 3-color sliding gradient: primary → secondary → tertiary → primary
+    p = _gradient_phase
+    # One full color cycle spans 1.2x the screen width
+    span = width * 1.5
+    gx0 = -span + p * span
+    gx1 = gx0 + span
 
-    line_gradient = cairo.LinearGradient(0, 0, width, 0)
-    line_gradient.add_color_stop_rgba(0, r1, g1, b1, min(1.0, _args.opacity * 2))
-    line_gradient.add_color_stop_rgba(1, r2, g2, b2, min(1.0, _args.opacity * 2))
+    gradient = cairo.LinearGradient(gx0, 0, gx1, 0)
+    gradient.add_color_stop_rgba(0.00, *FG_PRIMARY, _args.opacity)
+    gradient.add_color_stop_rgba(0.33, *FG_SECONDARY, _args.opacity)
+    gradient.add_color_stop_rgba(0.66, *FG_TERTIARY, _args.opacity)
+    gradient.add_color_stop_rgba(1.00, *FG_PRIMARY, _args.opacity)
+    gradient.set_extend(1)  # REPEAT
+
+    lo = min(1.0, _args.opacity * 2)
+    line_gradient = cairo.LinearGradient(gx0, 0, gx1, 0)
+    line_gradient.add_color_stop_rgba(0.00, *FG_PRIMARY, lo)
+    line_gradient.add_color_stop_rgba(0.33, *FG_SECONDARY, lo)
+    line_gradient.add_color_stop_rgba(0.66, *FG_TERTIARY, lo)
+    line_gradient.add_color_stop_rgba(1.00, *FG_PRIMARY, lo)
+    line_gradient.set_extend(1)
 
     # Top half: curve from center upward, filled down to center
     cr.new_path()
@@ -245,6 +259,8 @@ method = raw
 raw_target = /dev/stdout
 data_format = ascii
 ascii_max_range = 1000
+channels = mono
+mono_option = average
 """
     with open(config_path, "w") as f:
         f.write(config)
@@ -345,6 +361,15 @@ def on_activate(app):
     )
 
     win.present()
+
+    # Advance gradient phase ~60fps
+    def tick_gradient():
+        global _gradient_phase
+        _gradient_phase = (_gradient_phase + GRADIENT_SPEED / 60) % 1.0
+        if drawing_area:
+            drawing_area.queue_draw()
+        return True
+    GLib.timeout_add(16, tick_gradient)
 
     threading.Thread(target=cava_reader, daemon=True).start()
     threading.Thread(target=color_reload_watcher, daemon=True).start()

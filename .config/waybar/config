@@ -18,6 +18,7 @@
       "pulseaudio",
       "custom/bluetooth",
       "tray",
+      "custom/visualizer",
       "custom/power-profile",
       "battery",
       "custom/cc"
@@ -142,6 +143,15 @@
       "exec": "/home/kalu/dotfiles/.config/waybar/modules/power-profile.sh",
       "on-click": "/home/kalu/dotfiles/.config/waybar/modules/power-profile.sh cycle",
       "exec-on-event": true
+    },
+    "custom/visualizer": {
+      "format": "{}",
+      "interval": 2,
+      "exec": "$HOME/dotfiles/.config/waybar/modules/visualizer-toggle.sh",
+      "on-click": "$HOME/dotfiles/.config/waybar/modules/visualizer-toggle.sh toggle",
+      "exec-on-event": true,
+      "return-type": "json",
+      "tooltip": true
     },
     "custom/network-speed": {
       "format": "{}",
