@@ -98,4 +98,78 @@ cd $HOME/dotfiles && stow --adopt .
 flatpak install com.spotify.Client dev.vencord.Vesktop org.mozilla.Thunderbird
 ```
 
-14. Reboot and enjoy
+14. Set GTK3 theme to adw-gtk3-dark
+
+```bash
+# In ~/.config/gtk-3.0/settings.ini, change:
+# gtk-theme-name=adw-gtk3-dark
+sed -i 's/gtk-theme-name=.*/gtk-theme-name=adw-gtk3-dark/' ~/.config/gtk-3.0/settings.ini
+```
+
+15. Set up KDE/Qt theming
+
+KDE apps (Dolphin, etc.) use `kdeglobals` and the `Nothing.colors` color scheme. Matugen auto-generates both on wallpaper change. Manual one-time setup:
+
+```bash
+# Set KDE color scheme
+kwriteconfig6 --file ~/.config/kdeglobals --group "General" --key "ColorScheme" "Nothing"
+kwriteconfig6 --file ~/.config/kdedefaults/kdeglobals --group "General" --key "ColorScheme" "Nothing"
+
+# Set up Kvantum base theme (SVG for widget shapes)
+mkdir -p ~/.config/Kvantum/matugen
+cp /usr/share/Kvantum/KvArcDark/KvArcDark.svg ~/.config/Kvantum/matugen/matugen.svg
+
+# Set Kvantum active theme
+cat > ~/.config/Kvantum/kvantum.kvconfig << 'EOF'
+[General]
+theme=matugen
+EOF
+
+# Set up qt6ct
+mkdir -p ~/.config/qt6ct/colors
+cat > ~/.config/qt6ct/qt6ct.conf << 'EOF'
+[Appearance]
+style=kvantum-dark
+color_scheme_path=/home/$USER/.config/qt6ct/colors/matugen.conf
+custom_palette=true
+EOF
+
+# Run matugen once to generate all color configs
+matugen image <your-wallpaper-path>
+```
+
+16. Load Chrome theme extensions
+
+Open Chrome, go to `chrome://extensions/`, enable **Developer mode**, then load two unpacked extensions:
+- `~/.config/chrome-theme/` — the generated Material You theme
+- `~/.config/chrome-theme-reloader/` — auto-reloads the theme on wallpaper change
+
+The theme is generated automatically by matugen on each wallpaper change. On fresh boot, Chrome picks up the latest colors at launch. The reloader handles live updates while Chrome is running.
+
+17. Reboot and enjoy
+
+## Notes
+
+### Dynamic theming
+
+All colors are derived from the current wallpaper via matugen. Changing wallpaper (`Super+Shift+W`) automatically updates:
+- Hyprland border colors
+- Waybar colors
+- Kitty terminal colors
+- Rofi launcher colors
+- Fuzzel colors
+- SwayNC notification colors
+- GTK3/GTK4 app colors
+- KDE/Qt app colors (live reload via D-Bus signal)
+- Cava audio visualizer colors
+- Breeze folder icon accent colors
+
+KDE apps with folder previews (thumbnails) need F5 to refresh after wallpaper change — this is a Dolphin caching limitation.
+
+### Audio visualizer
+
+A cava-based audio visualizer runs on the Wayland background layer behind all windows. It auto-detects monitor refresh rate and scales framerate based on power profile. Restart it after power profile change via `Super+F7/F8/F9`.
+
+### Keybind cheat sheet
+
+Press `Super+/` to open a searchable keybind reference. It parses `hyprland.conf` live so it's always up to date.
