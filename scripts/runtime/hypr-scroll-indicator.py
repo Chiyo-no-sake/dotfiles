@@ -23,9 +23,9 @@ from gi.repository import Gtk, Gdk, GLib, Gtk4LayerShell as LayerShell
 
 # ── CLI args ────────────────────────────────────────────────
 _parser = argparse.ArgumentParser(description="Hyprland scroll indicator bar")
-_parser.add_argument("--bar-height", type=int, default=12, help="Height of the bar in px (default: 12)")
+_parser.add_argument("--bar-height", type=int, default=14, help="Height of the bar in px (default: 12)")
 _parser.add_argument("--thumb-radius", type=int, default=6, help="Corner radius of thumb/track in px (default: 6)")
-_parser.add_argument("--margin-bottom", type=int, default=12, help="Bottom margin in px (default: 12)")
+_parser.add_argument("--margin-bottom", type=int, default=10, help="Bottom margin in px (default: 12)")
 _parser.add_argument("--margin-side", type=int, default=64, help="Left/right margin in px (default: 64)")
 _parser.add_argument("--colors-file", type=str, default="~/.config/hypr/colors.conf", help="Path to matugen colors file")
 _args = _parser.parse_args()
@@ -60,19 +60,24 @@ def parse_hypr_colors(path):
 
 
 def get_theme_colors():
-    """Return (track_rgba, thumb_rgba) from the theme."""
+    """Return (track_rgba, thumb_start_rgba, thumb_end_rgba) from the theme."""
     c = parse_hypr_colors(COLORS_FILE)
-    # Track: darkened primary (fully opaque)
     pr, pg, pb = c.get("primary", (0.57, 0.84, 0.62))
-    # Thumb: full primary (fully opaque)
-    return (pr * 0.15, pg * 0.15, pb * 0.15, 1.0), (pr, pg, pb, 1.0)
+    sr, sg, sb = c.get("secondary", (pr * 0.7, pg * 0.7, pb * 0.7))
+    # Track: very dark primary
+    track = (pr * 0.15, pg * 0.15, pb * 0.15, 1.0)
+    # Thumb gradient: primary → secondary
+    thumb_start = (pr, pg, pb, 1.0)
+    thumb_end = (sr, sg, sb, 1.0)
+    return track, thumb_start, thumb_end
 
 state = None         # target (start_frac, end_frac) or None
 display_state = None # currently displayed (start, end) — animated towards state
 win = None
 drawing_area = None
 anim_id = None       # GLib timeout source id
-TRACK_COLOR, THUMB_COLOR = get_theme_colors()
+TRACK_COLOR, THUMB_START_COLOR, THUMB_END_COLOR = get_theme_colors()
+THUMB_INSET = 3  # px inset top/bottom for the "border" effect
 
 ANIM_DURATION_MS = 600  # overridden at startup from hyprland config
 ANIM_TICK_MS = 16       # ~60fps
@@ -266,16 +271,24 @@ def draw_func(_area, cr, width, height):
     # Clear to fully transparent first
     cr.set_operator(cairo.OPERATOR_SOURCE)
 
-    # Track
+    # Track (dark background)
     cr.set_source_rgba(*TRACK_COLOR)
     rounded_rect(cr, 0, 0, width, height, THUMB_RADIUS)
     cr.fill()
 
-    # Thumb — painted with SOURCE operator so alpha is written directly
-    thumb_x = start_frac * width
-    thumb_w = (end_frac - start_frac) * width
-    cr.set_source_rgba(*THUMB_COLOR)
-    rounded_rect(cr, thumb_x, 0, thumb_w, height, THUMB_RADIUS)
+    # Thumb — inset for a "border" effect, with gradient
+    usable_w = width - 2 * THUMB_INSET
+    thumb_x = THUMB_INSET + start_frac * usable_w
+    thumb_w = (end_frac - start_frac) * usable_w
+    thumb_y = THUMB_INSET
+    thumb_h = height - 2 * THUMB_INSET
+    thumb_r = min(THUMB_RADIUS, thumb_h / 2)
+
+    gradient = cairo.LinearGradient(thumb_x, 0, thumb_x + thumb_w, 0)
+    gradient.add_color_stop_rgba(0.0, *THUMB_START_COLOR)
+    gradient.add_color_stop_rgba(1.0, *THUMB_END_COLOR)
+    cr.set_source(gradient)
+    rounded_rect(cr, thumb_x, thumb_y, thumb_w, thumb_h, thumb_r)
     cr.fill()
 
 
@@ -297,7 +310,7 @@ def refresh():
         return False
 
     if new_state:
-        LayerShell.set_exclusive_zone(win, BAR_HEIGHT + MARGIN_BOTTOM)
+        LayerShell.set_exclusive_zone(win, BAR_HEIGHT)
         win.set_visible(True)
 
         if display_state is None:

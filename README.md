@@ -161,6 +161,7 @@ All colors are derived from the current wallpaper via matugen. Changing wallpape
 - SwayNC notification colors
 - GTK3/GTK4 app colors
 - KDE/Qt app colors (live reload via D-Bus signal)
+- Chrome browser UI (frame, toolbar, tabs, omnibox, NTP)
 - Cava audio visualizer colors
 - Breeze folder icon accent colors
 

@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Matugen Theme Reloader",
+  "version": "1.0",
+  "description": "Watches the Matugen dynamic theme and reloads it when colors change",
+  "permissions": ["management", "alarms"],
+  "background": {
+    "service_worker": "worker.js"
+  }
+}

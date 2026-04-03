@@ -29,7 +29,7 @@ return {
 				"markdown",
 				"markdown_inline",
 			}
-			require("nvim-treesitter").install(parsers)
+			require("nvim-treesitter.install").ensure_installed(parsers)
 
 			-- Enable highlighting and indentation for all filetypes with a parser
 			vim.api.nvim_create_autocmd("FileType", {
@@ -43,14 +43,8 @@ return {
 			-- Disable folding
 			vim.o.foldenable = false
 
-			-- Setup textobjects
-			require("nvim-treesitter-textobjects").setup({
-				select = { lookahead = true },
-				move = { set_jumps = true },
-			})
-
 			-- Textobject select keymaps
-			local select = require("nvim-treesitter-textobjects.select")
+			local select = require("nvim-treesitter.textobjects.select")
 			local select_keymaps = {
 				["ib"] = "@block.inner",
 				["ab"] = "@block.outer",
@@ -77,7 +71,7 @@ return {
 			end
 
 			-- Textobject move keymaps
-			local move = require("nvim-treesitter-textobjects.move")
+			local move = require("nvim-treesitter.textobjects.move")
 			local goto_next_start = {
 				["<leader>nm"] = "@function.outer",
 				["<leader>nc"] = "@class.outer",
@@ -137,7 +131,7 @@ return {
 			end
 
 			-- Repeatable movement with ; and ,
-			local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
+			local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")
 			vim.keymap.set({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_next)
 			vim.keymap.set({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_previous)
 
