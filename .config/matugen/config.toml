@@ -30,3 +30,7 @@ output_path = "~/.config/fuzzel/colors.ini"
 [templates.swaync]
 input_path = "~/.config/matugen/templates/swaync.css"
 output_path = "~/.config/swaync/colors.css"
+
+[templates.cavalier]
+input_path = "~/.config/matugen/templates/cavalier.json"
+output_path = "~/.var/app/org.nickvision.cavalier/config/Nickvision Cavalier/config.json"
