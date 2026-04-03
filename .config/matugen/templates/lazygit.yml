@@ -1,0 +1,23 @@
+gui:
+  nerdFontsVersion: "3"
+  theme:
+    activeBorderColor:
+      - "{{colors.primary.default.hex}}"
+      - bold
+    inactiveBorderColor:
+      - "{{colors.outline_variant.default.hex}}"
+    searchingActiveBorderColor:
+      - "{{colors.tertiary.default.hex}}"
+      - bold
+    optionsTextColor:
+      - "{{colors.primary.default.hex}}"
+    selectedLineBgColor:
+      - "{{colors.surface_container.default.hex}}"
+    cherryPickedCommitBgColor:
+      - "{{colors.tertiary_container.default.hex}}"
+    cherryPickedCommitFgColor:
+      - "{{colors.on_tertiary_container.default.hex}}"
+    unstagedChangesColor:
+      - "{{colors.error.default.hex}}"
+    defaultFgColor:
+      - "{{colors.on_surface.default.hex}}"
