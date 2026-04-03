@@ -15,3 +15,4 @@ pyenvs
 .config/rofi/colors/colors.rasi
 .config/fuzzel/colors.ini
 .config/swaync/colors.css
+.config/matugen/generated/
