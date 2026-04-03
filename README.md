@@ -25,20 +25,30 @@ echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com
 4. Install:
 
 ```bash
-sudo dnf install -y cmake meson cpio pkg-config git g++ gcc mesa-libGL-devel aquamarine-devel hyprlang-devel hyprcursor-devel hyprland-devel chafa stow hyprland hypridle hyprcursor hyprlock hyprpaper waybar nvim ranger luarocks lua5.1 blueman blueman-applet pavucontrol zsh rofi-wayland zoxide synology-drive-noextra code readline-devel sqlite-devel tk-devel libffi-devel openssl-devel zlib-devel pamixer SwayNotificationCenter libappindicator nm-applet fd go ruby gem composer php julia lazygit hyprshot hyprpolkitagent libscfg scdoc libvarlink kanshi gnome-tweaks gnome-shell-extension-pop-shell xprop uv \
+sudo dnf install -y cmake meson cpio pkg-config git g++ gcc mesa-libGL-devel aquamarine-devel hyprlang-devel hyprcursor-devel hyprland-devel chafa stow hyprland hypridle hyprcursor hyprlock hyprpaper waybar nvim luarocks lua5.1 blueman blueman-applet pavucontrol zsh rofi-wayland zoxide synology-drive-noextra code readline-devel sqlite-devel tk-devel libffi-devel openssl-devel zlib-devel pamixer SwayNotificationCenter libappindicator nm-applet fd go ruby gem composer php julia lazygit hyprshot hyprpolkitagent libscfg scdoc libvarlink kanshi gnome-tweaks gnome-shell-extension-pop-shell xprop uv \
   cava playerctl brightnessctl socat tuned jq acpi ripgrep fzf wget curl libnotify gnome-keyring matugen swww fuzzel bemoji direnv NetworkManager-connection-editor pipewire-utils \
   gtk4-layer-shell python3-gobject python3-cairo \
   adw-gtk3-theme kvantum qt5ct qt6ct \
   kitty starship
 ```
 
-5. Install starship:
+5. Install yazi (terminal file manager):
+
+```bash
+cd /tmp
+curl -sLO "https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip"
+unzip yazi-x86_64-unknown-linux-gnu.zip
+install -m 755 yazi-x86_64-unknown-linux-gnu/yazi ~/.local/bin/yazi
+install -m 755 yazi-x86_64-unknown-linux-gnu/ya ~/.local/bin/ya
+```
+
+6. Install starship:
    
 ```bash
 curl -sS https://starship.rs/install.sh | sh
 ```
 
-6. Build libxkbcommon 1.11.0 (needed for hyprpm — Fedora 42 ships 1.8.1)
+7. Build libxkbcommon 1.11.0 (needed for hyprpm — Fedora 42 ships 1.8.1)
 
 ```bash
 sudo dnf install meson ninja-build bison flex wayland-devel wayland-protocols-devel libxml2-devel xkeyboard-config-devel
@@ -50,7 +60,7 @@ ninja -C build
 sudo ninja -C build install
 ```
 
-7. Install hyprpm build deps and all hypr -devel packages
+8. Install hyprpm build deps and all hypr -devel packages
 
 ```bash
 sudo dnf install \
@@ -62,7 +72,7 @@ sudo dnf install \
   hyprutils-devel hyprwayland-scanner-devel hyprwire-devel hyprland-protocols-devel
 ```
 
-8. Install hypr plugins
+9. Install hypr plugins
 
 > **Important:** hyprpm requires the custom xkbcommon. Always use the `PKG_CONFIG_PATH` prefix:
 
@@ -73,32 +83,32 @@ hyprpm enable hyprexpo
 ```
 
 
-9. Run setup:
+10. Run setup:
 
 ```bash
 cd $HOME/dotfiles/scripts && ./setup.sh
 ```
 
-10. Install required rocks
+11. Install required rocks
 
 ```sh
 sudo luarocks --lua-version 5.1 install jsregexp
 ```
 
-11. Start a new shell (open new terminal)
+12. Start a new shell (open new terminal)
 
-12. Stow files
+13. Stow files
 ```sh
 cd $HOME/dotfiles && stow --adopt .
 ```
 
-13. Install Flatpak apps
+14. Install Flatpak apps
 
 ```bash
 flatpak install com.spotify.Client dev.vencord.Vesktop org.mozilla.Thunderbird
 ```
 
-14. Set GTK3 theme to adw-gtk3-dark
+15. Set GTK3 theme to adw-gtk3-dark
 
 ```bash
 # In ~/.config/gtk-3.0/settings.ini, change:
@@ -106,7 +116,7 @@ flatpak install com.spotify.Client dev.vencord.Vesktop org.mozilla.Thunderbird
 sed -i 's/gtk-theme-name=.*/gtk-theme-name=adw-gtk3-dark/' ~/.config/gtk-3.0/settings.ini
 ```
 
-15. Set up KDE/Qt theming
+16. Set up KDE/Qt theming
 
 KDE apps (Dolphin, etc.) use `kdeglobals` and the `Nothing.colors` color scheme. Matugen auto-generates both on wallpaper change. Manual one-time setup:
 
@@ -138,7 +148,7 @@ EOF
 matugen image <your-wallpaper-path>
 ```
 
-16. Load Chrome theme extensions
+17. Load Chrome theme extensions
 
 Open Chrome, go to `chrome://extensions/`, enable **Developer mode**, then load two unpacked extensions:
 - `~/.config/chrome-theme/` — the generated Material You theme
@@ -146,7 +156,7 @@ Open Chrome, go to `chrome://extensions/`, enable **Developer mode**, then load 
 
 The theme is generated automatically by matugen on each wallpaper change. On fresh boot, Chrome picks up the latest colors at launch. The reloader handles live updates while Chrome is running.
 
-17. Reboot and enjoy
+18. Reboot and enjoy
 
 ## Notes
 
@@ -162,6 +172,7 @@ All colors are derived from the current wallpaper via matugen. Changing wallpape
 - GTK3/GTK4 app colors
 - KDE/Qt app colors (live reload via D-Bus signal)
 - Chrome browser UI (frame, toolbar, tabs, omnibox, NTP)
+- Yazi file manager colors
 - Cava audio visualizer colors
 - Breeze folder icon accent colors
 

@@ -65,6 +65,14 @@ input_path = "~/.config/matugen/templates/chrome-colors.json"
 output_path = "~/.config/chrome-theme-colors/colors.json"
 post_hook = "~/dotfiles/scripts/runtime/chrome-theme-gen.sh"
 
+[templates.yazi]
+input_path = "~/.config/matugen/templates/yazi.toml"
+output_path = "~/.config/yazi/theme.toml"
+
+[templates.nvim]
+input_path = "~/.config/matugen/templates/nvim.lua"
+output_path = "~/.config/nvim/lua/matugen_colors.lua"
+
 [templates.cavalier]
 input_path = "~/.config/matugen/templates/cavalier.json"
 output_path = "~/.var/app/org.nickvision.cavalier/config/Nickvision Cavalier/config.json"

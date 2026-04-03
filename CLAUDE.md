@@ -9,3 +9,7 @@ This repo uses **GNU Stow** to manage symlinks from `~/dotfiles/.config/` into `
 - Config files that are **generated at runtime** (e.g., cava config, matugen color outputs) should not be added to the repo
 
 When adding new config directories, place them under `.config/` and re-run `stow .` to create the symlinks.
+
+## Setup documentation rule
+
+When adding new tools, dependencies, or one-time setup steps (e.g. installing a binary, enabling a service), always document them in the README so the setup is reproducible on a fresh machine.

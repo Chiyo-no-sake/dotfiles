@@ -1,0 +1,19 @@
+[mgr]
+ratio = [1, 3, 4]
+sort_by = "natural"
+sort_dir_first = true
+show_hidden = false
+
+[preview]
+max_width = 1000
+max_height = 1000
+
+[opener]
+edit = [
+  { run = '$EDITOR "$@"', block = true, for = "unix" },
+]
+
+[open]
+prepend_rules = [
+  { mime = "text/*", use = "edit" },
+]

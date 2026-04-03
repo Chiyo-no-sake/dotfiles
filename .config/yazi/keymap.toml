@@ -1,0 +1,7 @@
+# Yazi keymap - mirrors ranger habits where possible
+
+[mgr]
+prepend_keymap = [
+  { on = "g", run = "cd ~",    desc = "Go to home" },
+  { on = "!", run = "shell '$SHELL' --block", desc = "Open shell" },
+]

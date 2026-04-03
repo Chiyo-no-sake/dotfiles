@@ -24,7 +24,7 @@ _parser = argparse.ArgumentParser(description="Hyprland cava visualizer")
 _parser.add_argument("--bars", type=int, default=50, help="Number of bars (default: 50)")
 _parser.add_argument("--framerate", type=int, default=0, help="Framerate (default: auto-detect from monitor)")
 _parser.add_argument("--height-pct", type=float, default=20, help="Height as %% of monitor (default: 20)")
-_parser.add_argument("--opacity", type=float, default=0.55, help="Bar opacity (default: 0.55)")
+_parser.add_argument("--opacity", type=float, default=0.33, help="Bar opacity (default: 0.33)")
 _parser.add_argument("--gap", type=float, default=4, help="Gap between bars in px (default: 4)")
 _parser.add_argument("--roundness", type=float, default=0.5, help="Bar corner roundness 0-1 (default: 0.5)")
 _parser.add_argument("--mirror", action="store_true", default=True, help="Mirror bars vertically (default: true)")
@@ -139,6 +139,37 @@ def interpolate_color(c1, c2, t):
     )
 
 
+def rgb_to_hsl(r, g, b):
+    cmax, cmin = max(r, g, b), min(r, g, b)
+    delta = cmax - cmin
+    l = (cmax + cmin) / 2
+    if delta == 0:
+        return 0, 0, l
+    s = delta / (1 - abs(2 * l - 1))
+    if cmax == r:
+        h = ((g - b) / delta) % 6
+    elif cmax == g:
+        h = (b - r) / delta + 2
+    else:
+        h = (r - g) / delta + 4
+    return h / 6, min(s, 1.0), l
+
+
+def hsl_to_rgb(h, s, l):
+    c = (1 - abs(2 * l - 1)) * s
+    x = c * (1 - abs((h * 6) % 2 - 1))
+    m = l - c / 2
+    h6 = int(h * 6) % 6
+    r, g, b = [(c,x,0),(x,c,0),(0,c,x),(0,x,c),(x,0,c),(c,0,x)][h6]
+    return (r + m, g + m, b + m)
+
+
+def boost_saturation(rgb, amount=0.35):
+    h, s, l = rgb_to_hsl(*rgb)
+    s = min(1.0, s + amount)
+    return hsl_to_rgb(h, s, l)
+
+
 def smooth_curve(cr, points):
     """Draw a smooth curve through points using cubic bezier splines."""
     if len(points) < 2:
@@ -241,6 +272,48 @@ def draw_func(_area, cr, width, height):
         cr.set_source(line_gradient)
         cr.set_line_width(2)
         cr.stroke()
+
+    # ── Saturation boost near the center line ──
+    # Draw a band around center_y with more saturated colors that fades out vertically
+    boost_h = max_h * 0.20  # height of the boost band (each side of center)
+    bp = boost_saturation(FG_PRIMARY, 0.25)
+    bs = boost_saturation(FG_SECONDARY, 0.25)
+    bt = boost_saturation(FG_TERTIARY, 0.25)
+    boost_opacity = _args.opacity
+
+    boost_grad = cairo.LinearGradient(gx0, 0, gx1, 0)
+    boost_grad.add_color_stop_rgba(0.00, *bp, boost_opacity)
+    boost_grad.add_color_stop_rgba(0.33, *bs, boost_opacity)
+    boost_grad.add_color_stop_rgba(0.66, *bt, boost_opacity)
+    boost_grad.add_color_stop_rgba(1.00, *bp, boost_opacity)
+    boost_grad.set_extend(1)
+
+    # Vertical fade mask: opaque at center_y, transparent at ±boost_h
+    fade = cairo.LinearGradient(0, center_y - boost_h, 0, center_y + boost_h)
+    fade.add_color_stop_rgba(0.0, 0, 0, 0, 0)
+    fade.add_color_stop_rgba(0.4, 0, 0, 0, 1)
+    fade.add_color_stop_rgba(0.5, 0, 0, 0, 1)
+    fade.add_color_stop_rgba(0.6, 0, 0, 0, 1)
+    fade.add_color_stop_rgba(1.0, 0, 0, 0, 0)
+
+    cr.save()
+    # Clip to the bar shapes (top + bottom) so boost only applies where bars exist
+    cr.new_path()
+    smooth_curve(cr, points_top)
+    cr.line_to(width, center_y)
+    cr.line_to(0, center_y)
+    cr.close_path()
+    if _args.mirror:
+        smooth_curve(cr, points_bot)
+        cr.line_to(width, center_y)
+        cr.line_to(0, center_y)
+        cr.close_path()
+    cr.clip()
+
+    # Paint the saturated gradient, masked by the vertical fade
+    cr.set_source(boost_grad)
+    cr.mask(fade)
+    cr.restore()
 
 
 def build_cava_config():

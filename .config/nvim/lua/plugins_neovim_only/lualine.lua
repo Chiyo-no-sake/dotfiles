@@ -6,20 +6,38 @@ return {
 		-- Credit: glepnir
 		local lualine = require("lualine")
 
-		-- Color table for highlights
-		local colors = {
-			bg = "#202328",
-			fg = "#bbc2cf",
-			yellow = "#ECBE7B",
-			cyan = "#008080",
-			darkblue = "#081633",
-			green = "#98be65",
-			orange = "#FF8800",
-			violet = "#a9a1e1",
-			magenta = "#c678dd",
-			blue = "#51afef",
-			red = "#ec5f67",
-		}
+		-- Load matugen colors or use fallback
+		local ok, m = pcall(require, "matugen_colors")
+		local colors
+		if ok then
+			colors = {
+				bg = m.surface_container,
+				fg = m.on_surface,
+				yellow = m.inverse_primary,
+				cyan = m.on_secondary_container,
+				darkblue = m.surface_dim,
+				green = m.tertiary,
+				orange = m.on_tertiary_container,
+				violet = m.secondary,
+				magenta = m.on_primary_container,
+				blue = m.primary,
+				red = m.error,
+			}
+		else
+			colors = {
+				bg = "#202328",
+				fg = "#bbc2cf",
+				yellow = "#ECBE7B",
+				cyan = "#008080",
+				darkblue = "#081633",
+				green = "#98be65",
+				orange = "#FF8800",
+				violet = "#a9a1e1",
+				magenta = "#c678dd",
+				blue = "#51afef",
+				red = "#ec5f67",
+			}
+		end
 
 		local conditions = {
 			buffer_not_empty = function()

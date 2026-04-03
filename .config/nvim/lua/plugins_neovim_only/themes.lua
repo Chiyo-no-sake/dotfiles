@@ -1,15 +1,17 @@
 return {
 	{
-		"catppuccin/nvim",
-		name = "catppuccin",
+		-- Matugen dynamic colorscheme (loaded from colors/matugen.lua)
+		-- Falls back to catppuccin if matugen colors are not yet generated
+		dir = vim.fn.stdpath("config"),
+		name = "matugen-theme",
 		priority = 1000,
 		config = function()
-			require("catppuccin").setup({
-				default_integration = true,
-				flavor = "macchiato",
-			})
-
-			vim.cmd("colorscheme catppuccin")
+			local ok = pcall(require, "matugen_colors")
+			if ok then
+				vim.cmd("colorscheme matugen")
+			else
+				vim.notify("matugen colors not found, run matugen to generate", vim.log.levels.WARN)
+			end
 		end,
 	},
 	-- {
