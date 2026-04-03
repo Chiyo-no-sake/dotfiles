@@ -22,7 +22,7 @@ from gi.repository import Gtk, Gdk, GLib, Gtk4LayerShell as LayerShell
 # ── CLI args ────────────────────────────────────────────────
 _parser = argparse.ArgumentParser(description="Hyprland cava visualizer")
 _parser.add_argument("--bars", type=int, default=50, help="Number of bars (default: 50)")
-_parser.add_argument("--framerate", type=int, default=60, help="Framerate (default: 60)")
+_parser.add_argument("--framerate", type=int, default=0, help="Framerate (default: auto-detect from monitor)")
 _parser.add_argument("--height-pct", type=float, default=20, help="Height as %% of monitor (default: 20)")
 _parser.add_argument("--opacity", type=float, default=0.55, help="Bar opacity (default: 0.55)")
 _parser.add_argument("--gap", type=float, default=4, help="Gap between bars in px (default: 4)")
@@ -30,7 +30,7 @@ _parser.add_argument("--roundness", type=float, default=0.5, help="Bar corner ro
 _parser.add_argument("--mirror", action="store_true", default=True, help="Mirror bars vertically (default: true)")
 _parser.add_argument("--no-mirror", action="store_true", help="Disable vertical mirroring")
 _parser.add_argument("--monstercat", action="store_true", default=True, help="Monstercat smoothing (default: true)")
-_parser.add_argument("--noise-reduction", type=float, default=0.77, help="Noise reduction (default: 0.77)")
+_parser.add_argument("--noise-reduction", type=float, default=0.50, help="Noise reduction (default: 0.50)")
 _parser.add_argument("--colors-file", type=str, default="~/.config/hypr/colors.conf",
                       help="Path to matugen colors file")
 _args = _parser.parse_args()
@@ -38,6 +38,55 @@ if _args.no_mirror:
     _args.mirror = False
 
 COLORS_FILE = os.path.expanduser(_args.colors_file)
+
+def detect_refresh_rate():
+    """Read the active monitor's refresh rate from Hyprland."""
+    try:
+        import json, socket
+        sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+        runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+        sock_path = f"{runtime}/hypr/{sig}/.socket.sock"
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect(sock_path)
+        s.send(b"j/monitors")
+        chunks = []
+        while True:
+            data = s.recv(8192)
+            if not data:
+                break
+            chunks.append(data)
+        s.close()
+        monitors = json.loads(b"".join(chunks))
+        if monitors:
+            return int(monitors[0].get("refreshRate", 60))
+    except Exception:
+        pass
+    return 60
+
+def detect_power_profile():
+    """Read active power profile via D-Bus."""
+    try:
+        result = subprocess.run(
+            ["busctl", "get-property", "net.hadess.PowerProfiles",
+             "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", "ActiveProfile"],
+            capture_output=True, text=True, timeout=2,
+        )
+        return result.stdout.strip().split('"')[1]
+    except Exception:
+        return "balanced"
+
+def apply_power_scaling(framerate):
+    """Scale framerate based on power profile."""
+    profile = detect_power_profile()
+    if profile == "power-saver":
+        return max(30, framerate // 3)
+    elif profile == "balanced":
+        return max(30, framerate // 2)
+    return framerate  # performance: full refresh rate
+
+if _args.framerate <= 0:
+    _args.framerate = apply_power_scaling(detect_refresh_rate())
 
 # ── State ──────────────────────────────────────────────────
 bar_values = [0.0] * _args.bars
@@ -187,7 +236,7 @@ def build_cava_config():
 bars = {_args.bars}
 framerate = {_args.framerate}
 autosens = 1
-sensitivity = 100
+sensitivity = 150
 monstercat = {1 if _args.monstercat else 0}
 noise_reduction = {_args.noise_reduction}
 

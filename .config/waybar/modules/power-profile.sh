@@ -17,8 +17,8 @@ fi
 
 profile=$(get_profile)
 case "$profile" in
-    throughput-performance) echo "󱐋" ;;
-    balanced*)              echo "󰗑" ;;
-    powersave)              echo "󰌪" ;;
-    *)                      echo "󰗑" ;;
+    throughput-performance) echo " " ;;
+    balanced*)              echo "󰗑 " ;;
+    powersave)              echo "󰌪 " ;;
+    *)                      echo "󰗑 " ;;
 esac
