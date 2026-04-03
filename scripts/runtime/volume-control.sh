@@ -19,6 +19,8 @@ get_icon() {
 		echo "$iDIR/volume-mid.png"
 	elif [[ "$current" -ge "60" ]]; then
 		echo "$iDIR/volume-high.png"
+	elif [[ "$current" -gt "100" ]]; then
+		echo "$iDIR/volume-high.png"
 	fi
 }
 
@@ -34,7 +36,7 @@ inc_volume() {
 
 # Decrease Volume
 dec_volume() {
-	pamixer -d 5 && notify_user
+	pamixer --allow-boost -d 5 && notify_user
 }
 
 # Toggle Mute

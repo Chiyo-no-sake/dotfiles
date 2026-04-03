@@ -9,7 +9,7 @@ Setup:
 
 ```bash
 sudo dnf copr enable -y emixampp/synology-drive 
-sudo dnf copr enable -y solopasha/hyprland
+sudo dnf copr enable -y sdegler/hyprland
 sudo dnf copr enable -y erikreider/SwayNotificationCenter
 sudo dnf copr enable -y atim/lazygit
 ```
@@ -34,32 +34,58 @@ sudo dnf install -y cmake meson cpio pkg-config git g++ gcc mesa-libGL-devel aqu
 curl -sS https://starship.rs/install.sh | sh
 ```
 
-6. Install hypr plugins
+6. Build libxkbcommon 1.11.0 (needed for hyprpm — Fedora 42 ships 1.8.1)
 
 ```bash
-hyprpm update
+sudo dnf install meson ninja-build bison flex wayland-devel wayland-protocols-devel libxml2-devel xkeyboard-config-devel
+cd /tmp
+git clone --depth 50 --branch xkbcommon-1.11.0 https://github.com/xkbcommon/libxkbcommon.git libxkbcommon-build
+cd libxkbcommon-build
+meson setup build -Dprefix=/usr/local -Denable-docs=false
+ninja -C build
+sudo ninja -C build install
+```
+
+7. Install hyprpm build deps and all hypr -devel packages
+
+```bash
+sudo dnf install \
+  libuuid-devel pango-devel libXcursor-devel libinput-devel \
+  mesa-libgbm-devel re2-devel muParser-devel xcb-util-wm-devel \
+  xcb-util-errors-devel tomlplusplus-devel libxkbcommon-devel \
+  cmake gcc-c++ \
+  hyprcursor-devel hyprgraphics-devel hyprlang-devel hyprtoolkit-devel \
+  hyprutils-devel hyprwayland-scanner-devel hyprwire-devel hyprland-protocols-devel
+```
+
+8. Install hypr plugins
+
+> **Important:** hyprpm requires the custom xkbcommon. Always use the `PKG_CONFIG_PATH` prefix:
+
+```bash
+PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:$PKG_CONFIG_PATH hyprpm update
 hyprpm add https://github.com/hyprwm/hyprland-plugins
 hyprpm enable hyprexpo
 ```
 
 
-7. Run setup:
+9. Run setup:
 
 ```bash
 cd $HOME/dotfiles/scripts && ./setup.sh
 ```
 
-8. Install required rocks
+10. Install required rocks
 
 ```sh
 sudo luarocks --lua-version 5.1 install jsregexp
 ```
 
-9. Start a new shell (open new terminal)
+11. Start a new shell (open new terminal)
 
-10. Stow files
+12. Stow files
 ```sh
 cd $HOME/dotfiles && stow --adopt .
 ```
 
-9. Reboot and enjoy
+13. Reboot and enjoy

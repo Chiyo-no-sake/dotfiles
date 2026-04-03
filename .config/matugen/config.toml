@@ -1,6 +1,6 @@
 [config]
 fallback_color = "#8aadf4"
-prefer = "closest-to-fallback"
+prefer = "largest-area"
 scheme_type = "scheme-vibrant"
 
 [config.wallpaper]

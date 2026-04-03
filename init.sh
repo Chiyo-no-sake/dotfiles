@@ -65,6 +65,12 @@ if command -v starship &> /dev/null; then
   eval "$(starship init zsh)"
 fi
 
+# custom binaries
+export PATH="$HOME/dotfiles/.local/share/bin:$PATH"
+export PATH="/home/kalu/.local/bin:$PATH"
+
+alias claudee="claude --dangerously-skip-permissions"
+
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
 fi
@@ -72,17 +78,3 @@ fi
 # direnv setup
 eval "$(direnv hook zsh)"
 
-export GITHUB_TOKEN=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
-
-# custom binaries
-export PATH="$HOME/dotfiles/.local/share/bin:$PATH"
-export PATH="/home/kalu/.local/bin:$PATH"
-alias claudee="claude --dangerously-skip-permissions"
-
-export SARTIQ_YOUTRACK_USER_TOKEN="perm-cGFzbw==.NDktOQ==.bJmno3pu6BibeUBuRTUGaD1xu7HIUM"
-export SARTIQ_DOCS_TOKEN="bf914ae28a3920ef4cdbbcdecbeaaf8a3cdd2ccdaaaf786557a13a7965d62c54"
-export CLOUDFLARE_API_TOKEN=cfut_341Gf6zF5wM5RlxIyrnzWMxNZVCvLFPuaKZP5ZmC3d84f7be
-
-
-export SARTIQ_API_MCP_URL=https://dev-api.sartiq.com
-export SARTIQ_API_MCP_TOKEN=asd
