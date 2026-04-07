@@ -12,7 +12,7 @@ gui:
     optionsTextColor:
       - "{{colors.primary.default.hex}}"
     selectedLineBgColor:
-      - "{{colors.surface_container_high.default.hex}}"
+      - "{{colors.surface_variant.default.hex}}"
     cherryPickedCommitBgColor:
       - "{{colors.tertiary_container.default.hex}}"
     cherryPickedCommitFgColor:

@@ -77,13 +77,14 @@ def detect_power_profile():
         return "balanced"
 
 def apply_power_scaling(framerate):
-    """Return fixed framerate based on power profile."""
+    """Return framerate scaled to power profile, aligned to monitor refresh."""
     profile = detect_power_profile()
     if profile == "power-saver":
-        return 40
+        return 33  # 165/5
     elif profile == "balanced":
-        return 60
-    return 90  # performance
+        return 55  # 165/3
+    # performance: half the monitor refresh avoids compositor judder
+    return min(framerate, 82)  # 165/2 ≈ 82
 
 if _args.framerate <= 0:
     _args.framerate = apply_power_scaling(detect_refresh_rate())
@@ -93,7 +94,12 @@ bar_values = [0.0] * _args.bars
 win = None
 drawing_area = None
 _gradient_phase = 0.0  # 0..1, shifts the gradient horizontally
+_last_draw_time = 0.0  # monotonic timestamp of last draw
+_win_opacity = 0.0     # current window opacity (for fade in/out)
 GRADIENT_SPEED = 0.15  # full cycles per second
+SILENCE_THRESHOLD = 0.02  # below this peak → silence (2% of max)
+FADE_IN_SPEED = 3.0    # opacity units/sec (0→1 in ~0.33s)
+FADE_OUT_SPEED = 1.5   # opacity units/sec (1→0 in ~0.67s)
 
 
 def parse_hypr_colors(path):
@@ -191,18 +197,50 @@ def smooth_curve(cr, points):
 
 
 def draw_func(_area, cr, width, height):
-    import cairo
-    cr.set_operator(cairo.OPERATOR_SOURCE)
-    cr.set_source_rgba(0, 0, 0, 0)
-    cr.paint()
+    import cairo, time
+    global _gradient_phase, _last_draw_time
+
+    now = time.monotonic()
+    dt = now - _last_draw_time if _last_draw_time > 0 else 0
+    _last_draw_time = now
+    _gradient_phase = (_gradient_phase + GRADIENT_SPEED * dt) % 1.0
+
+    # Fade window based on audio level
+    global _win_opacity
+    peak = max(bar_values) if bar_values else 0.0
+    if peak > SILENCE_THRESHOLD:
+        _win_opacity = min(1.0, _win_opacity + FADE_IN_SPEED * dt)
+    else:
+        _win_opacity = max(0.0, _win_opacity - FADE_OUT_SPEED * dt)
+
+    if _win_opacity < 0.005:
+        # Fully silent — clear and skip all drawing
+        cr.set_operator(cairo.OPERATOR_SOURCE)
+        cr.set_source_rgba(0, 0, 0, 0)
+        cr.paint()
+        return
 
     n = len(bar_values)
     if n == 0:
+        cr.set_operator(cairo.OPERATOR_SOURCE)
+        cr.set_source_rgba(0, 0, 0, 0)
+        cr.paint()
         return
 
     # Limit drawing area to height_pct centered vertically
     max_h = height * (_args.height_pct / 100)
     center_y = height / 2
+
+    # Clip + clear only the band where bars can appear (not the full 3440x1440)
+    band_top = center_y - max_h * 0.5 - 4
+    band_bot = center_y + max_h * 0.5 + 4
+    cr.save()
+    cr.rectangle(0, band_top, width, band_bot - band_top)
+    cr.clip()
+
+    cr.set_operator(cairo.OPERATOR_SOURCE)
+    cr.set_source_rgba(0, 0, 0, 0)
+    cr.paint()
 
     cr.set_operator(cairo.OPERATOR_OVER)
 
@@ -221,20 +259,21 @@ def draw_func(_area, cr, width, height):
             points_bot.append((x, center_y + max_h * 0.5))
 
     # 3-color sliding gradient: primary → secondary → tertiary → primary
-    p = _gradient_phase
-    # One full color cycle spans 1.2x the screen width
     span = width * 1.5
-    gx0 = -span + p * span
+    gx0 = -span + _gradient_phase * span
     gx1 = gx0 + span
 
+    # Apply fade opacity to all alpha values
+    oa = _args.opacity * _win_opacity
+
     gradient = cairo.LinearGradient(gx0, 0, gx1, 0)
-    gradient.add_color_stop_rgba(0.00, *FG_PRIMARY, _args.opacity)
-    gradient.add_color_stop_rgba(0.33, *FG_SECONDARY, _args.opacity)
-    gradient.add_color_stop_rgba(0.66, *FG_TERTIARY, _args.opacity)
-    gradient.add_color_stop_rgba(1.00, *FG_PRIMARY, _args.opacity)
+    gradient.add_color_stop_rgba(0.00, *FG_PRIMARY, oa)
+    gradient.add_color_stop_rgba(0.33, *FG_SECONDARY, oa)
+    gradient.add_color_stop_rgba(0.66, *FG_TERTIARY, oa)
+    gradient.add_color_stop_rgba(1.00, *FG_PRIMARY, oa)
     gradient.set_extend(1)  # REPEAT
 
-    lo = min(1.0, _args.opacity * 2)
+    lo = min(1.0, _args.opacity * 2) * _win_opacity
     line_gradient = cairo.LinearGradient(gx0, 0, gx1, 0)
     line_gradient.add_color_stop_rgba(0.00, *FG_PRIMARY, lo)
     line_gradient.add_color_stop_rgba(0.33, *FG_SECONDARY, lo)
@@ -242,78 +281,62 @@ def draw_func(_area, cr, width, height):
     line_gradient.add_color_stop_rgba(1.00, *FG_PRIMARY, lo)
     line_gradient.set_extend(1)
 
-    # Top half: curve from center upward, filled down to center
+    # ── Boost: 2D gradient with saturation peak at center_y ──
+    # Instead of a separate clip+mask pass, use a vertical gradient that blends
+    # the boosted colors near center and the normal colors at the edges.
+    boost_h = max_h * 0.25
+    bp = boost_saturation(FG_PRIMARY, 0.25)
+    bs = boost_saturation(FG_SECONDARY, 0.25)
+    bt = boost_saturation(FG_TERTIARY, 0.25)
+    def make_gradient(y_from_center):
+        """Return gradient with opacity fading based on distance from center."""
+        dist = abs(y_from_center) / max(1, boost_h)
+        if dist >= 1.0:
+            return gradient  # outside boost zone, use normal gradient
+        # Blend: closer to center → more saturated, brighter
+        t = 1.0 - dist
+        o = (_args.opacity + (_args.opacity * 0.5) * t) * _win_opacity
+        g = cairo.LinearGradient(gx0, 0, gx1, 0)
+        g.add_color_stop_rgba(0.00, *interpolate_color(FG_PRIMARY, bp, t), o)
+        g.add_color_stop_rgba(0.33, *interpolate_color(FG_SECONDARY, bs, t), o)
+        g.add_color_stop_rgba(0.66, *interpolate_color(FG_TERTIARY, bt, t), o)
+        g.add_color_stop_rgba(1.00, *interpolate_color(FG_PRIMARY, bp, t), o)
+        g.set_extend(1)
+        return g
+
+    # Top half: build curve, stroke it, then close + fill
     cr.new_path()
     smooth_curve(cr, points_top)
+    stroke_top = cr.copy_path()
     cr.line_to(width, center_y)
     cr.line_to(0, center_y)
     cr.close_path()
-    cr.set_source(gradient)
+    cr.set_source(make_gradient(-max_h * 0.15))
     cr.fill()
 
     cr.new_path()
-    smooth_curve(cr, points_top)
+    cr.append_path(stroke_top)
     cr.set_source(line_gradient)
     cr.set_line_width(2)
     cr.stroke()
 
     if _args.mirror:
-        # Bottom half: curve from center downward, filled up to center
         cr.new_path()
         smooth_curve(cr, points_bot)
+        stroke_bot = cr.copy_path()
         cr.line_to(width, center_y)
         cr.line_to(0, center_y)
         cr.close_path()
-        cr.set_source(gradient)
+        cr.set_source(make_gradient(max_h * 0.15))
         cr.fill()
 
         cr.new_path()
-        smooth_curve(cr, points_bot)
+        cr.append_path(stroke_bot)
         cr.set_source(line_gradient)
         cr.set_line_width(2)
         cr.stroke()
 
-    # ── Saturation boost near the center line ──
-    # Draw a band around center_y with more saturated colors that fades out vertically
-    boost_h = max_h * 0.20  # height of the boost band (each side of center)
-    bp = boost_saturation(FG_PRIMARY, 0.25)
-    bs = boost_saturation(FG_SECONDARY, 0.25)
-    bt = boost_saturation(FG_TERTIARY, 0.25)
-    boost_opacity = _args.opacity
-
-    boost_grad = cairo.LinearGradient(gx0, 0, gx1, 0)
-    boost_grad.add_color_stop_rgba(0.00, *bp, boost_opacity)
-    boost_grad.add_color_stop_rgba(0.33, *bs, boost_opacity)
-    boost_grad.add_color_stop_rgba(0.66, *bt, boost_opacity)
-    boost_grad.add_color_stop_rgba(1.00, *bp, boost_opacity)
-    boost_grad.set_extend(1)
-
-    # Vertical fade mask: opaque at center_y, transparent at ±boost_h
-    fade = cairo.LinearGradient(0, center_y - boost_h, 0, center_y + boost_h)
-    fade.add_color_stop_rgba(0.0, 0, 0, 0, 0)
-    fade.add_color_stop_rgba(0.4, 0, 0, 0, 1)
-    fade.add_color_stop_rgba(0.5, 0, 0, 0, 1)
-    fade.add_color_stop_rgba(0.6, 0, 0, 0, 1)
-    fade.add_color_stop_rgba(1.0, 0, 0, 0, 0)
-
-    cr.save()
-    # Clip to the bar shapes (top + bottom) so boost only applies where bars exist
-    cr.new_path()
-    smooth_curve(cr, points_top)
-    cr.line_to(width, center_y)
-    cr.line_to(0, center_y)
-    cr.close_path()
-    if _args.mirror:
-        smooth_curve(cr, points_bot)
-        cr.line_to(width, center_y)
-        cr.line_to(0, center_y)
-        cr.close_path()
-    cr.clip()
-
-    # Paint the saturated gradient, masked by the vertical fade
-    cr.set_source(boost_grad)
-    cr.mask(fade)
-    cr.restore()
+    cr.restore()  # release the band clip
 
 
 def build_cava_config():
@@ -341,7 +364,7 @@ mono_option = average
 
 
 def cava_reader():
-    global bar_values
+    global bar_values, _cava_dirty
     config_path = build_cava_config()
     proc = subprocess.Popen(
         ["cava", "-p", config_path],
@@ -378,17 +401,14 @@ def cava_reader():
                 bar_values = [min(1.0, int(v) / 1000) for v in vals if v]
             except ValueError:
                 continue
-            GLib.idle_add(queue_draw)
+            _cava_dirty = True
     except Exception:
         pass
     finally:
         proc.kill()
 
 
-def queue_draw():
-    if drawing_area:
-        drawing_area.queue_draw()
-    return False
+_cava_dirty = False
 
 
 def color_reload_watcher():
@@ -435,14 +455,16 @@ def on_activate(app):
 
     win.present()
 
-    # Advance gradient phase ~60fps
-    def tick_gradient():
-        global _gradient_phase
-        _gradient_phase = (_gradient_phase + GRADIENT_SPEED / 60) % 1.0
-        if drawing_area:
+    # Single unified frame tick — redraws on new data or during fade transitions
+    frame_interval = max(8, 1000 // _args.framerate)
+    def frame_tick():
+        global _cava_dirty
+        fading = 0.005 < _win_opacity < 0.995
+        if (_cava_dirty or fading) and drawing_area:
+            _cava_dirty = False
             drawing_area.queue_draw()
         return True
-    GLib.timeout_add(16, tick_gradient)
+    GLib.timeout_add(frame_interval, frame_tick)
 
     threading.Thread(target=cava_reader, daemon=True).start()
     threading.Thread(target=color_reload_watcher, daemon=True).start()
