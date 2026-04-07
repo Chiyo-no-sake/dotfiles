@@ -1,8 +1,12 @@
 #!/bin/bash
 # Restart the cava visualizer (used by power profile keybinds)
-pkill -f hypr-cava-visualizer.py 2>/dev/null
+pkill -f hypr-cava-visualizer 2>/dev/null
 sleep 1
-# Ensure old process is gone
-pkill -9 -f hypr-cava-visualizer.py 2>/dev/null
+pkill -9 -f hypr-cava-visualizer 2>/dev/null
 sleep 0.5
-exec env LD_PRELOAD=/usr/lib64/libgtk4-layer-shell.so.0 /usr/bin/python3 "$HOME/dotfiles/scripts/runtime/hypr-cava-visualizer.py"
+exec hypr-cava-visualizer \
+    --colors-file ~/.config/hypr/colors.conf \
+    --height-pct 35 --opacity 0.33 \
+    --fade --fade-in-speed 3.0 --fade-out-speed 1.5 \
+    --silence-threshold 0.02 \
+    --boost-saturation 0.25 --power-aware

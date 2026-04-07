@@ -33,9 +33,8 @@ apply_wallpaper() {
     pkill waybar; waybar &
 
     # Restart scroll indicator to pick up new colors
-    pkill -f hypr-scroll-indicator.py
-    env LD_PRELOAD=/usr/lib64/libgtk4-layer-shell.so.0 /usr/bin/python3 \
-        "$HOME/dotfiles/scripts/runtime/hypr-scroll-indicator.py" &
+    pkill -f hypr-scroll-indicator
+    hypr-scroll-indicator --colors-file ~/.config/hypr/colors.conf --hyprland-conf ~/.config/hypr/hyprland.conf &
 
     # Reload kitty colors (all running instances)
     for sock in /tmp/kitty-*; do
