@@ -27,12 +27,10 @@ return {
 			local lspconfig = require("lspconfig")
 			local telescope_builtins = require("telescope.builtin")
 
-			-- LSP servers and clients are able to communicate to each other what features they hrt.
-			--  By default, Neovim doesn't support everything that is in the LSP specification.
-			--  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
-			--  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
-			local capabilities = vim.lsp.protocol.make_client_capabilities()
-			capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
+			-- LSP servers and clients are able to communicate to each other what features they support.
+			-- blink.cmp adds completion-related capabilities (snippets, additionalTextEdits, etc.)
+			-- on top of Neovim's defaults.
+			local capabilities = require("blink.cmp").get_lsp_capabilities()
 
 			local function organize_imports()
 				-- ty doesn't support organize imports yet, only for TypeScript
@@ -125,6 +123,30 @@ return {
 				},
 				jsonls = {},
 				helm_ls = {},
+				gopls = {
+					capabilities = capabilities,
+					settings = {
+						gopls = {
+							gofumpt = true,
+							staticcheck = true,
+							usePlaceholders = true,
+							completeUnimported = true,
+							analyses = {
+								unusedparams = true,
+								shadow = true,
+							},
+							hints = {
+								assignVariableTypes = true,
+								compositeLiteralFields = true,
+								compositeLiteralTypes = true,
+								constantValues = true,
+								functionTypeParameters = true,
+								parameterNames = true,
+								rangeVariableTypes = true,
+							},
+						},
+					},
+				},
 				yamlls = {
 					capabilities = capabilities,
 					settings = {
@@ -165,6 +187,10 @@ return {
 				"yamlls",
 				"typescript-language-server",
 				"js-debug-adapter",
+				"gofumpt",
+				"goimports",
+				"golangci-lint",
+				"delve",
 			})
 
 			require("mason-tool-installer").setup({

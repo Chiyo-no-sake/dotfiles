@@ -49,7 +49,7 @@ return {
 			"MunifTanjim/nui.nvim",
 			"nvim-tree/nvim-web-devicons",
 			--- Optional dependencies
-			"hrsh7th/nvim-cmp", -- For autocompletion in avante commands
+			"saghen/blink.cmp", -- For autocompletion in avante commands
 			"nvim-telescope/telescope.nvim", -- For file selector
 			{
 				-- Image pasting support

@@ -13,7 +13,6 @@ return {
 	dependencies = {
 		-- Required.
 		"nvim-lua/plenary.nvim",
-		"williamboman/nvim-cmp",
 
 		-- see below for full list of optional dependencies 👇
 	},

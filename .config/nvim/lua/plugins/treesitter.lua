@@ -29,7 +29,7 @@ return {
 				"markdown",
 				"markdown_inline",
 			}
-			require("nvim-treesitter.install").ensure_installed(parsers)
+			require("nvim-treesitter").install(parsers)
 
 			-- Enable highlighting and indentation for all filetypes with a parser
 			vim.api.nvim_create_autocmd("FileType", {
@@ -43,8 +43,18 @@ return {
 			-- Disable folding
 			vim.o.foldenable = false
 
+			require("nvim-treesitter-textobjects").setup({
+				select = {
+					lookahead = true,
+					include_surrounding_whitespace = false,
+				},
+				move = {
+					set_jumps = true,
+				},
+			})
+
 			-- Textobject select keymaps
-			local select = require("nvim-treesitter.textobjects.select")
+			local select = require("nvim-treesitter-textobjects.select")
 			local select_keymaps = {
 				["ib"] = "@block.inner",
 				["ab"] = "@block.outer",
@@ -66,12 +76,12 @@ return {
 			}
 			for key, query in pairs(select_keymaps) do
 				vim.keymap.set({ "x", "o" }, key, function()
-					select.select_textobject(query)
+					select.select_textobject(query, "textobjects")
 				end, { desc = "Select " .. query })
 			end
 
 			-- Textobject move keymaps
-			local move = require("nvim-treesitter.textobjects.move")
+			local move = require("nvim-treesitter-textobjects.move")
 			local goto_next_start = {
 				["<leader>nm"] = "@function.outer",
 				["<leader>nc"] = "@class.outer",
@@ -111,27 +121,27 @@ return {
 
 			for key, query in pairs(goto_next_start) do
 				vim.keymap.set({ "n", "x", "o" }, key, function()
-					move.goto_next_start(query)
+					move.goto_next_start(query, "textobjects")
 				end, { desc = "Next " .. query .. " start" })
 			end
 			for key, query in pairs(goto_next_end) do
 				vim.keymap.set({ "n", "x", "o" }, key, function()
-					move.goto_next_end(query)
+					move.goto_next_end(query, "textobjects")
 				end, { desc = "Next " .. query .. " end" })
 			end
 			for key, query in pairs(goto_previous_start) do
 				vim.keymap.set({ "n", "x", "o" }, key, function()
-					move.goto_previous_start(query)
+					move.goto_previous_start(query, "textobjects")
 				end, { desc = "Previous " .. query .. " start" })
 			end
 			for key, query in pairs(goto_previous_end) do
 				vim.keymap.set({ "n", "x", "o" }, key, function()
-					move.goto_previous_end(query)
+					move.goto_previous_end(query, "textobjects")
 				end, { desc = "Previous " .. query .. " end" })
 			end
 
 			-- Repeatable movement with ; and ,
-			local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")
+			local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
 			vim.keymap.set({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_next)
 			vim.keymap.set({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_previous)
 

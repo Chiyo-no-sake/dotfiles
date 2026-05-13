@@ -34,6 +34,11 @@ return {
                 -- python
                 null_ls.builtins.formatting.isort,
                 null_ls.builtins.formatting.black,
+
+                -- go
+                null_ls.builtins.formatting.gofumpt,
+                null_ls.builtins.formatting.goimports,
+                null_ls.builtins.diagnostics.golangci_lint,
             },
             on_attach = function(client, bufnr)
                 if client.supports_method("textDocument/formatting") then
