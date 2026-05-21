@@ -197,3 +197,13 @@ A cava-based audio visualizer runs on the Wayland background layer behind all wi
 ### Keybind cheat sheet
 
 Press `Super+/` to open a searchable keybind reference. It parses `hyprland.conf` live so it's always up to date.
+
+### btop config path
+
+`btop` rewrites its full config (~272 lines) on every clean exit, using `rename()` — which severs any symlink at the destination. To keep the tracked config as the single source of truth, we run btop with `--config ~/dotfiles/.config/btop/btop.conf` directly, so rewrites land in the tracked file.
+
+Wired up in two places:
+- Shell alias in `init.sh` for terminal launches
+- User `.desktop` override at `.local/share/applications/btop.desktop` for GUI launchers (takes precedence over `/usr/share/applications/btop.desktop` per XDG)
+
+`.config/btop` is excluded from stow for this reason — nothing to symlink. The matugen-generated theme still lives at `~/.config/btop/themes/matugen.theme` (default path, regenerated per wallpaper change).

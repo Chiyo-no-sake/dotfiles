@@ -17,3 +17,8 @@ init.sh
 .env.template
 
 README.md
+
+# btop owns the file directly (see init.sh alias and user .desktop override).
+# btop rewrites its conf via rename() which severs stow symlinks, so we skip
+# stowing and point btop at ~/dotfiles/.config/btop/btop.conf with --config.
+.config/btop

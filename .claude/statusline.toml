@@ -1,0 +1,146 @@
+# Claude Code statusline — single-line starship config.
+# Loaded by ~/.claude/statusline.sh via STARSHIP_CONFIG. Intentionally separate
+# from the shell's starship.toml: here we disable the newline and prompt char,
+# trim module formats to a compact inline style, and keep scan_timeout tight
+# so the statusline stays snappy even in large repos.
+
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = false
+command_timeout = 300
+scan_timeout = 40
+
+format = """\
+$directory\
+$git_branch\
+$git_status\
+$git_state\
+$python\
+$nodejs\
+$bun\
+$deno\
+$rust\
+$golang\
+$java\
+$kotlin\
+$ruby\
+$php\
+$lua\
+$zig\
+$docker_context\
+$package\
+"""
+
+[character]
+disabled = true
+
+[line_break]
+disabled = true
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+read_only = " 󰌾"
+style = "bold cyan"
+format = "[  $path ]($style)"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = '[$symbol$branch]($style) '
+
+[git_status]
+style = "bold yellow"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?${count}"
+stashed = "≡"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[git_state]
+style = "bold red"
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+
+[python]
+symbol = " "
+style = "yellow"
+format = '[${symbol}${pyversion}( \($virtualenv\))]($style) '
+version_format = "${raw}"
+python_binary = ["python3", "python"]
+
+[nodejs]
+symbol = " "
+style = "green"
+format = '[${symbol}${version}]($style) '
+version_format = "${raw}"
+detect_extensions = []
+detect_files = ["package.json", ".nvmrc"]
+
+[bun]
+symbol = " "
+style = "yellow"
+format = '[${symbol}${version}]($style) '
+version_format = "${raw}"
+
+[deno]
+symbol = " "
+style = "green"
+format = '[${symbol}${version}]($style) '
+
+[rust]
+symbol = " "
+style = "red"
+format = '[${symbol}${version}]($style) '
+version_format = "${raw}"
+
+[golang]
+symbol = " "
+style = "cyan"
+format = '[${symbol}${version}]($style) '
+version_format = "${raw}"
+
+[java]
+symbol = " "
+style = "red dimmed"
+format = '[${symbol}${version}]($style) '
+version_format = "${raw}"
+
+[kotlin]
+symbol = " "
+style = "blue"
+format = '[${symbol}${version}]($style) '
+
+[ruby]
+symbol = " "
+style = "red"
+format = '[${symbol}${version}]($style) '
+
+[php]
+symbol = " "
+style = "purple"
+format = '[${symbol}${version}]($style) '
+
+[lua]
+symbol = " "
+style = "blue"
+format = '[${symbol}${version}]($style) '
+
+[zig]
+symbol = " "
+style = "yellow"
+format = '[${symbol}${version}]($style) '
+
+[docker_context]
+symbol = " "
+style = "blue"
+format = '[$symbol$context]($style) '
+only_with_files = true
+
+[package]
+disabled = true

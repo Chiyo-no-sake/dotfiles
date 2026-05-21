@@ -32,6 +32,10 @@ alias gc="git commit"
 alias la="ls -la"
 alias lzg="lazygit"
 alias lzd="lazydocker"
+# btop writes its config to $XDG_CONFIG_HOME on exit via rename(), which
+# severs stow symlinks. Point btop directly at the file in dotfiles so its
+# rewrites land in the tracked copy — no symlink in between to break.
+alias btop="btop --config $HOME/dotfiles/.config/btop/btop.conf"
 
 # History Settings
 HISTFILE=~/.zsh_history # Where to store history
@@ -85,4 +89,10 @@ fi
 
 # direnv setup
 eval "$(direnv hook zsh)"
+
+# Per-user zsh completions (cliq, etc.). zsh's default fpath omits this
+# XDG dir, so add it and (re-)init the completion system. Runs before
+# ~/.bun/_bun's compinit, which then no-ops since compinit is already loaded.
+fpath=("$HOME/.local/share/zsh/site-functions" $fpath)
+autoload -Uz compinit && compinit
 
