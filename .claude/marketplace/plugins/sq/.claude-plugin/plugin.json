@@ -1,0 +1,17 @@
+{
+  "name": "sq",
+  "version": "0.1.0",
+  "description": "Autonomous end-to-end task execution for Sartiq. Drives a YouTrack issue from ticket to PR across the shootify repos — fetch, scope, worktree, plan, review, implement, regenerate clients, test, sync with dev, and open PRs.",
+  "author": {
+    "name": "Luca Pasini",
+    "email": "operations@sartiq.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "youtrack",
+    "autonomous",
+    "worktree",
+    "orchestration",
+    "end-to-end"
+  ]
+}

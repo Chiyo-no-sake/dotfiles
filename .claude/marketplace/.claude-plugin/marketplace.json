@@ -1,0 +1,22 @@
+{
+  "name": "luca-dotfiles",
+  "description": "Luca's personal Claude Code marketplace, tracked in dotfiles.",
+  "owner": {
+    "name": "Luca Pasini",
+    "email": "operations@sartiq.com"
+  },
+  "plugins": [
+    {
+      "name": "sq",
+      "version": "0.1.0",
+      "source": "./plugins/sq",
+      "description": "Autonomous end-to-end task execution for Sartiq. Drives a YouTrack issue from ticket to PR across the shootify repos — fetch, scope, worktree, plan, review, implement, regenerate clients, test, sync with dev, and open PRs.",
+      "author": {
+        "name": "Luca Pasini",
+        "email": "operations@sartiq.com"
+      },
+      "category": "development",
+      "strict": false
+    }
+  ]
+}

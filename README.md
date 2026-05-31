@@ -187,12 +187,35 @@ All colors are derived from the current wallpaper via matugen. Changing wallpape
 - btop system monitor colors
 - Cava audio visualizer colors
 - Breeze folder icon accent colors
+- AURA RGB LEDs — fans, GPU, cooler (this PC only, via OpenRGB)
 
 KDE apps with folder previews (thumbnails) need F5 to refresh after wallpaper change — this is a Dolphin caching limitation.
 
 ### Audio visualizer
 
 A cava-based audio visualizer runs on the Wayland background layer behind all windows. It auto-detects monitor refresh rate and scales framerate based on power profile. Restart it after power profile change via `Super+F7/F8/F9`.
+
+### AURA RGB hardware sync (desktop only)
+
+This machine (`fedora-sin`) has AURA-compatible RGB hardware (fans, GPU, cooler). Matugen drives it so the physical lighting follows the wallpaper accent. The `aura-sync.sh` hook self-gates by hostname, so this is a no-op on any other machine (e.g. the laptop) and on machines without OpenRGB.
+
+One-time setup:
+
+```bash
+# 1. Install OpenRGB (controls AURA / Aura Sync devices on Linux)
+sudo dnf install -y openrgb
+
+# 2. Motherboard/RAM RGB over SMBus needs the ACPI resource lock relaxed.
+#    Add the kernel param, then reboot. (i2c-dev is already autoloaded.)
+sudo grubby --update-kernel=ALL --args="acpi_enforce_resources=lax"
+
+# 3. After reboot, confirm what OpenRGB can see and control:
+openrgb --list-devices
+```
+
+OpenRGB installs udev rules for non-root USB/i2c access automatically; reboot (or log out/in) so they apply. If a device exposes a `direct` but not a `static` mode, adjust the `apply` order in `scripts/runtime/aura-sync.sh`.
+
+**How it works:** the `[templates.aura]` matugen template writes the palette to `~/.config/aura-colors/colors.json` (generated at runtime — not committed), then the `aura-sync.sh` post_hook pushes the `primary` color to every detected device on each wallpaper change (`Super+Shift+W`). Change the `ROLE` variable in the script to drive the LEDs from `secondary`/`tertiary` instead.
 
 ### Keybind cheat sheet
 
@@ -207,3 +230,34 @@ Wired up in two places:
 - User `.desktop` override at `.local/share/applications/btop.desktop` for GUI launchers (takes precedence over `/usr/share/applications/btop.desktop` per XDG)
 
 `.config/btop` is excluded from stow for this reason — nothing to symlink. The matugen-generated theme still lives at `~/.config/btop/themes/matugen.theme` (default path, regenerated per wallpaper change).
+
+## Claude Code: personal plugin marketplace
+
+A personal Claude Code marketplace lives at `.claude/marketplace/` in this repo
+(`luca-dotfiles`). It holds the `sq` plugin, whose `auto-do` skill drives a
+YouTrack issue from ticket to PR across the three shootify repos
+(invoke with `/sq:auto-do SHO-1234`).
+
+Layout:
+
+```
+.claude/marketplace/
+  .claude-plugin/marketplace.json
+  plugins/sq/
+    .claude-plugin/plugin.json
+    skills/auto-do/SKILL.md
+```
+
+The marketplace is registered **by local path** (Claude reads it straight from
+this repo — no Stow symlink required). To set it up on a fresh machine:
+
+```bash
+claude plugin marketplace add ~/dotfiles/.claude/marketplace
+claude plugin install sq@luca-dotfiles
+```
+
+To pick up edits to the skill after pulling changes:
+
+```bash
+claude plugin marketplace update luca-dotfiles
+```
