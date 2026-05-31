@@ -1,0 +1,6 @@
+{
+  "primary": "{{colors.primary.default.hex}}",
+  "secondary": "{{colors.secondary.default.hex}}",
+  "tertiary": "{{colors.tertiary.default.hex}}",
+  "surface": "{{colors.surface.default.hex}}"
+}

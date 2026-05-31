@@ -16,3 +16,7 @@ pyenvs
 .config/fuzzel/colors.ini
 .config/swaync/colors.css
 .config/matugen/generated/
+
+# Python build artifacts
+__pycache__/
+*.pyc

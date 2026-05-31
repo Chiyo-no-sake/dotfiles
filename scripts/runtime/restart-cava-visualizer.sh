@@ -1,9 +1,11 @@
 #!/bin/bash
 # Restart the cava visualizer (used by power profile keybinds)
 pkill -f hypr-cava-visualizer 2>/dev/null
-sleep 1
-pkill -9 -f hypr-cava-visualizer 2>/dev/null
 sleep 0.5
+pkill -9 -f hypr-cava-visualizer 2>/dev/null
+# Kill orphaned cava processes spawned by previous visualizer instances
+pkill -f "cava -p.*/hypr-cava-visualizer/" 2>/dev/null
+sleep 0.3
 exec hypr-cava-visualizer \
     --colors-file ~/.config/hypr/colors.conf \
     --height-pct 35 --opacity 0.33 \

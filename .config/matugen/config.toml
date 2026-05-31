@@ -80,3 +80,10 @@ output_path = "~/.config/btop/themes/matugen.theme"
 [templates.cavalier]
 input_path = "~/.config/matugen/templates/cavalier.json"
 output_path = "~/.var/app/org.nickvision.cavalier/config/Nickvision Cavalier/config.json"
+
+# AURA RGB hardware sync (this PC only; the hook self-gates by hostname).
+# Renders the palette to JSON, then aura-sync.sh pushes the accent to OpenRGB.
+[templates.aura]
+input_path = "~/.config/matugen/templates/aura-colors.json"
+output_path = "~/.config/aura-colors/colors.json"
+post_hook = "~/dotfiles/scripts/runtime/aura-sync.sh"
