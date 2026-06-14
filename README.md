@@ -231,6 +231,31 @@ Wired up in two places:
 
 `.config/btop` is excluded from stow for this reason — nothing to symlink. The matugen-generated theme still lives at `~/.config/btop/themes/matugen.theme` (default path, regenerated per wallpaper change).
 
+### Bitwarden (desktop + biometric unlock)
+
+Installed from the official RPM (native package — supports both browser integration
+and "Unlock with system authentication", unlike the Flatpak/AppImage builds). It is
+**not** in a dnf repo, so it does not auto-update and the package is unsigned:
+
+```bash
+# Download the latest desktop RPM (redirects to GitHub release assets — slow on a
+# single stream, so pull it in parallel with aria2):
+sudo dnf install -y aria2
+aria2c -x16 -s16 -k1M "https://vault.bitwarden.com/download/?app=desktop&platform=linux&variant=rpm"
+sudo dnf install -y --nogpgcheck ./Bitwarden-*.rpm
+```
+
+To update later, re-download and `sudo dnf install` the newer RPM.
+
+Autostarted via `$bitwarden = bitwarden` + `exec-once = $bitwarden &` in `hyprland.conf`.
+
+**Biometric unlock (Howdy face auth):** unlock delegates to polkit → PAM, so it reuses
+the existing Howdy setup — no Bitwarden-specific config needed. Requirements (all already
+in place): `pam_howdy.so` in `/etc/pam.d/polkit-1`, a running polkit agent
+(`hyprpolkitagent`, autostarted), and the `gnome-keyring` secret service (autostarted).
+Then enable in-app: **Settings → Security → Unlock with system authentication**. You still
+log in once per app start with the master password/PIN; biometrics unlock thereafter.
+
 ## Claude Code: personal plugin marketplace
 
 A personal Claude Code marketplace lives at `.claude/marketplace/` in this repo
