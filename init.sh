@@ -13,10 +13,27 @@ function r() {
   fi
   rm -f -- "$tmp"
 }
+# Ranger wrapper: changes cwd on exit (same trick as the yazi `r` above).
+# `--choosedir` makes ranger write its final directory to a tempfile on quit;
+# we read it back and cd there so the shell follows ranger's navigation. A
+# child process can't cd its parent shell, so this must be a wrapper, not a
+# ranger keybinding. `command ranger` avoids recursing into this function;
+# `builtin cd` sidesteps the `cd=z` zoxide alias.
+function ranger() {
+  local tmp="$(mktemp -t "ranger-cwd.XXXXXX")" cwd
+  command ranger --choosedir="$tmp" "$@"
+  if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+    builtin cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
+}
 
 # ASDF
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-export EDITOR=vim
+# nvim is the editor (vi/vim are aliased to it above). rifle/ranger exec the
+# $EDITOR binary directly and ignore shell aliases, so set it to nvim here too
+# — otherwise opening a text file in ranger would launch plain vim.
+export EDITOR=nvim
 
 # Load .env if it exists and is valid
 if [[ -f "$HOME/dotfiles/.env" ]]; then

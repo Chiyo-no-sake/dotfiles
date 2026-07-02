@@ -8,6 +8,7 @@
     "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
     "modules-center": [
       "custom/layout",
+      "custom/theme",
       "clock",
       "custom/win-count",
     ],
@@ -19,6 +20,7 @@
       "custom/bluetooth",
       "tray",
       "custom/visualizer",
+      "custom/amphetamine",
       "custom/power-profile",
       "battery",
       "custom/cc"
@@ -78,6 +80,14 @@
         "interval": 1,
         "exec": "$HOME/dotfiles/.config/waybar/modules/layout-toggle.sh",
         "on-click": "$HOME/dotfiles/.config/waybar/modules/layout-toggle.sh toggle",
+        "exec-on-event": true,
+        "return-type": "json",
+        "tooltip": true
+    },
+    "custom/theme": {
+        "format": "{}",
+        "exec": "$HOME/dotfiles/.config/waybar/modules/theme-toggle.sh",
+        "on-click": "$HOME/dotfiles/.config/waybar/modules/theme-toggle.sh toggle",
         "exec-on-event": true,
         "return-type": "json",
         "tooltip": true
@@ -143,6 +153,16 @@
       "exec": "/home/kalu/dotfiles/.config/waybar/modules/power-profile.sh",
       "on-click": "/home/kalu/dotfiles/.config/waybar/modules/power-profile.sh cycle",
       "exec-on-event": true
+    },
+    "custom/amphetamine": {
+      "format": "{}",
+      "interval": 5,
+      "exec": "$HOME/dotfiles/.config/waybar/modules/amphetamine.sh",
+      "on-click": "$HOME/dotfiles/.config/waybar/modules/amphetamine.sh toggle",
+      "on-click-right": "$HOME/dotfiles/.config/waybar/modules/amphetamine.sh timer",
+      "exec-on-event": true,
+      "return-type": "json",
+      "tooltip": true
     },
     "custom/visualizer": {
       "format": "{}",

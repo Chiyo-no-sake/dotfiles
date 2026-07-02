@@ -51,6 +51,7 @@
 #custom-network-speed,
 #custom-bitwarden,
 #custom-power,
+#custom-amphetamine,
 #custom-power-profile {
   color: @on_surface;
   background-color: alpha(@surface_container, 0.0);
@@ -72,6 +73,18 @@
 }
 
 #custom-layout.scrolling {
+  color: @tertiary;
+  border-bottom: solid 2px @tertiary;
+}
+
+#custom-theme {
+  color: @secondary;
+  border-bottom: solid 2px @secondary;
+  padding: 0.1rem 14px;
+  margin: 0px 6px;
+}
+
+#custom-theme.light {
   color: @tertiary;
   border-bottom: solid 2px @tertiary;
 }
@@ -135,6 +148,11 @@
 #custom-power-profile {
   color: @tertiary;
   border-bottom: solid 2px @tertiary;
+}
+
+#custom-amphetamine.on {
+  color: @error;
+  border-bottom: solid 2px @error;
 }
 
 #custom-power-profile.performance {

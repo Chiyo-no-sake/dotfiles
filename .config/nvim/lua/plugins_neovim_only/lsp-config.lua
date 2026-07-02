@@ -173,9 +173,7 @@ return {
 			vim.list_extend(ensure_installed, {
 				"stylua",
 				"prettierd",
-				"isort",
-				"black",
-				"pylint",
+				"ruff",
 				"codespell",
 				"eslint",
 				"jsonlint",

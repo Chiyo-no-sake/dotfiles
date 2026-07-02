@@ -31,9 +31,10 @@ return {
                     only_local = "node_modules/.bin",
                 }),
 
-                -- python
-                null_ls.builtins.formatting.isort,
-                null_ls.builtins.formatting.black,
+                -- python (ruff: honors each project's pyproject.toml / ruff.toml)
+                require("none-ls.diagnostics.ruff"), -- `ruff check`: squiggles match the linter exactly
+                require("none-ls.formatting.ruff"), -- `ruff check --fix`: lint autofixes + import sorting (replaces isort)
+                require("none-ls.formatting.ruff_format"), -- `ruff format` (replaces black)
 
                 -- go
                 null_ls.builtins.formatting.gofumpt,

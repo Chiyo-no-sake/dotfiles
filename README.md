@@ -167,7 +167,38 @@ Open Chrome, go to `chrome://extensions/`, enable **Developer mode**, then load 
 
 The theme is generated automatically by matugen on each wallpaper change. On fresh boot, Chrome picks up the latest colors at launch. The reloader handles live updates while Chrome is running.
 
-19. Reboot and enjoy
+19. Apply ethernet stability fixes (Intel I219-LM + ASIX AX88179)
+
+Both NICs on this laptop drop their link every few days from two unrelated bugs:
+- Intel I219-LM (`e1000e`): Energy Efficient Ethernet LPI mis-negotiates with the PHY. Journal shows `EEE TX LPI TIMER: ... NIC Link is Down`.
+- ASIX AX88179/AX88179A USB dongle: USB autosuspend silently kills the link after idle time.
+
+Install a NetworkManager dispatcher (disables EEE on every wired link-up) and a udev rule (keeps the ASIX dongle out of autosuspend on every plug-in):
+
+```bash
+sudo install -o root -g root -m 0755 /dev/stdin /etc/NetworkManager/dispatcher.d/50-disable-ethernet-eee <<'EOF'
+#!/usr/bin/env bash
+set -eu
+IFACE="${1:-}"
+ACTION="${2:-}"
+case "$IFACE" in enp*|eth*) ;; *) exit 0 ;; esac
+case "$ACTION" in
+    up|pre-up|connectivity-change)
+        /usr/sbin/ethtool --set-eee "$IFACE" eee off >/dev/null 2>&1 || true
+        ;;
+esac
+EOF
+
+sudo install -o root -g root -m 0644 /dev/stdin /etc/udev/rules.d/50-asix-ax88179-no-autosuspend.rules <<'EOF'
+# ASIX AX88179/AX88179A USB Gigabit Ethernet — disable USB autosuspend
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0b95", ATTR{idProduct}=="1790", TEST=="power/control", ATTR{power/control}="on"
+EOF
+
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=usb --attr-match=idVendor=0b95
+```
+
+20. Reboot and enjoy
 
 ## Notes
 
@@ -190,6 +221,16 @@ All colors are derived from the current wallpaper via matugen. Changing wallpape
 - AURA RGB LEDs — fans, GPU, cooler (this PC only, via OpenRGB)
 
 KDE apps with folder previews (thumbnails) need F5 to refresh after wallpaper change — this is a Dolphin caching limitation.
+
+#### Light/dark live switcher
+
+`scripts/runtime/theme-toggle.sh` flips between matugen's light and dark variants of the **current wallpaper** without changing the image. It reruns matugen with `--mode light|dark` and replays the same reload pipeline as the wallpaper cycler, so kitty, hyprland, waybar, nvim (live, via `--remote-send` on `/run/user/$UID/nvim.*`), swaync and the scroll indicator all update in place.
+
+Triggers:
+- `Super+Shift+T` — Hyprland keybinding
+- Waybar sun/moon module in the center cluster — click to toggle
+
+The choice persists in `~/.cache/theme-mode`. `wallpaper-cycle.sh` reads that file so the daemon keeps you in light mode across wallpaper rotations until you toggle back.
 
 ### Audio visualizer
 
@@ -216,6 +257,27 @@ openrgb --list-devices
 OpenRGB installs udev rules for non-root USB/i2c access automatically; reboot (or log out/in) so they apply. If a device exposes a `direct` but not a `static` mode, adjust the `apply` order in `scripts/runtime/aura-sync.sh`.
 
 **How it works:** the `[templates.aura]` matugen template writes the palette to `~/.config/aura-colors/colors.json` (generated at runtime — not committed), then the `aura-sync.sh` post_hook pushes the `primary` color to every detected device on each wallpaper change (`Super+Shift+W`). Change the `ROLE` variable in the script to drive the LEDs from `secondary`/`tertiary` instead.
+
+### Bluetooth headset: prevent auto-downgrade to mono call quality
+
+Classic Bluetooth headsets (e.g. Sony WH-1000XM3) can't run A2DP (stereo output) and HFP (mic) at once. By default WirePlumber auto-switches the whole card to mono HSP/HFP the instant any app opens the headset's mic — including apps like Discord that transiently probe the mic even when it isn't the selected input device. This tanks output quality for calls even if you only ever use the laptop mic.
+
+`.config/wireplumber/wireplumber.conf.d/51-bluez-no-autoswitch.conf` sets `bluetooth.autoswitch-to-headset-profile = false`, so the card stays on A2DP regardless of what opens the mic. Applied automatically by `stow .`; no separate install step. If a device ever gets stuck in `headset-head-unit` (e.g. mid-call after a manual profile change), force it back with:
+
+```bash
+pactl set-card-profile bluez_card.<MAC_with_underscores> a2dp-sink
+```
+
+### Amphetamine (keep-awake)
+
+`scripts/runtime/amphetamine.sh` temporarily disables hypridle so the screen stays on (no dim, no lock, no dpms-off, no suspend). hypridle has no IPC, so "on" kills the daemon and "off" respawns it via `hyprctl dispatch exec` (parented to Hyprland, so it survives waybar reloads). State persists in `~/.cache/amphetamine` (`inf` or an epoch expiry); a stale file from a previous session is auto-cleared on the first status poll.
+
+Waybar eye module in the right cluster:
+- Click — toggle staying awake indefinitely
+- Right-click — stay awake for 60 min (repeat clicks stack +60 min; shows a countdown)
+- Active state is highlighted in the error color so you don't forget it's on
+
+CLI: `amphetamine.sh {on [min]|off|toggle|bump [min]|status}`.
 
 ### Keybind cheat sheet
 

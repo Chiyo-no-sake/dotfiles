@@ -6,6 +6,19 @@ if vim.fn.exists("syntax_on") then
 end
 vim.g.colors_name = "matugen"
 
+-- Respect the persisted theme-toggle mode so plugins that branch on
+-- vim.o.background pick the right variant.
+do
+  local f = io.open(vim.fn.expand("~/.cache/theme-mode"), "r")
+  if f then
+    local m = (f:read("*l") or ""):gsub("%s+", "")
+    f:close()
+    if m == "light" or m == "dark" then
+      vim.o.background = m
+    end
+  end
+end
+
 local ok, c = pcall(require, "matugen_colors")
 if not ok then
   vim.notify("matugen_colors not found - run matugen to generate colors", vim.log.levels.WARN)
