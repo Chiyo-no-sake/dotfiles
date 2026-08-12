@@ -1,0 +1,56 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "cliproxy": {
+      "name": "cliproxy",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "apiKey": "{env:CLIPROXY_API_KEY}"
+      }
+    }
+  },
+  "mcp": {
+    "youtrack": {
+      "type": "remote",
+      "url": "https://shootify.youtrack.cloud/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:SARTIQ_YOUTRACK_USER_TOKEN}"
+      }
+    },
+    "sartiq-docs": {
+      "type": "remote",
+      "url": "https://docs-mcp.sartiq.com/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:SARTIQ_DOCS_TOKEN}"
+      }
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "sartiq-api": {
+      "type": "remote",
+      "url": "{env:SARTIQ_API_MCP_URL}",
+      "headers": {
+        "Authorization": "Bearer {env:SARTIQ_API_MCP_TOKEN}"
+      }
+    },
+    "serena": {
+      "type": "remote",
+      "url": "http://127.0.0.1:9121/mcp"
+    }
+  },
+  "plugin": [
+    "@shootify-io/opencode-sq@latest"
+  ],
+  "instructions": [
+    "/home/kalu/.config/opencode/AGENTS.md"
+  ],
+  "references": {
+    "quality": {
+      "path": "/home/kalu/.config/opencode/sq-dev/references/quality",
+      "description": "sq-dev quality canon (glossary, React patterns) used by the professor / refactor / review skills."
+    }
+  }
+  // <<< sq-dev <<<
+}
