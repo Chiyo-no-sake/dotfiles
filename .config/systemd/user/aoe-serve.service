@@ -1,0 +1,12 @@
+[Unit]
+Description=aoe (Agent of Empires) web dashboard daemon
+# Started at login so the dashboard is always reachable and matugen theme
+# regenerations can hot-PATCH /api/theme (see aoe-theme-reload.sh).
+
+[Service]
+ExecStart=%h/.local/bin/aoe serve --port 8080
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

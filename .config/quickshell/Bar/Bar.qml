@@ -88,6 +88,26 @@ Item {
 
   property var activePopout: null
 
+  // One open panel per bar: when a panel registers as the active popout,
+  // every OTHER panel instance closes. The KeyboardPanel of the newly
+  // opened one requests the slot in onOpenChanged; siblings that watch
+  // this handler get shut here. Closes go through closeForPopoutSwitch
+  // when available so the outgoing card plays its hand-off fade instead
+  // of a hard cut.
+  onActivePopoutChanged: {
+    if (activePopout === null) return
+    for (var name in shell.instances) {
+      var list = shell.instances[name]
+      for (var i = 0; i < list.length; i++) {
+        var inst = list[i]
+        if (!inst || inst === activePopout) continue
+        if (inst.opened !== true) continue
+        if (typeof inst.closeForPopoutSwitch === "function") inst.closeForPopoutSwitch()
+        else if (typeof inst.close === "function") inst.close()
+      }
+    }
+  }
+
   function requestPopout(key) {
     activePopout = key
   }
@@ -214,6 +234,47 @@ Item {
     }
   }
 
+  // Shadow strip under the bar: a separate layer surface anchored just
+  // below the bar, non-exclusive (ExclusionMode.Ignore) so tiled windows
+  // keep their geometry and slide UNDER the shadow — the shadow is cast
+  // on whatever is beneath, like real elevation. Empty input mask makes
+  // the whole strip click-through.
+  Variants {
+    model: Quickshell.screens
+
+    PanelWindow {
+      required property var modelData
+
+      screen: modelData
+      visible: true
+      color: "transparent"
+      exclusionMode: ExclusionMode.Ignore
+      WlrLayershell.namespace: "qs-bar-shadow"
+      WlrLayershell.layer: WlrLayer.Top
+
+      anchors {
+        top: true
+        left: true
+        right: true
+      }
+      margins.top: root.barSize
+      implicitHeight: Math.round(Style.spaceReal(10))
+
+      // Empty region = no input area: clicks pass through to windows.
+      mask: Region {}
+
+      Rectangle {
+        anchors.fill: parent
+        gradient: Gradient {
+          orientation: Gradient.Vertical
+          GradientStop { position: 0; color: Util.alpha("#000000", 0.26) }
+          GradientStop { position: 0.55; color: Util.alpha("#000000", 0.10) }
+          GradientStop { position: 1; color: "transparent" }
+        }
+      }
+    }
+  }
+
   // One layout entry → one ModuleSlot. Owns contract injection, instance
   // registration, IPC arbitration, and the panel underline marker.
   component ModuleSlot: Loader {
@@ -236,18 +297,27 @@ Item {
           // Section underline on EVERY slot: a marker strip at the bar's
           // bottom edge in the hyprland active-border accent (primary at
           // rest; the full primary→tertiary gradient while the widget's
-          // panel is open — same pair the window borders use).
+          // panel is open — same pair the window borders use). Spans the
+          // module's width with a small inset; a module may expose
+          // `underlineWidth` (tray: tracks its hover drawer) to paint a
+          // narrower marker, right-aligned so it grows leftward with it.
           Rectangle {
             id: panelUnderline
             readonly property bool panelOpen: widgetLoader.item !== null
               && widgetLoader.item.opened === true
+            readonly property bool customExtent: widgetLoader.item !== null
+              && widgetLoader.item.underlineWidth !== undefined
+            readonly property real markerWidth: customExtent
+              ? Math.min(widgetLoader.item.underlineWidth, parent.width - Style.spaceReal(3) * 2)
+              : parent.width - Style.spaceReal(3) * 2
             anchors.bottom: parent.bottom
             anchors.bottomMargin: Math.max(1, Math.round(Style.spaceReal(1)) - 1)
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: Math.min(parent.width * 0.6, Style.spaceReal(18))
+            anchors.right: parent.right
+            anchors.rightMargin: Style.spaceReal(3)
+            width: Math.max(0, markerWidth)
             height: Math.max(2, Math.round(Style.spaceReal(2)))
             radius: height / 2
-            color: Util.alpha(Color.accent, 0.32)
+            color: Util.alpha(Color.accent, 0.5)
             gradient: panelOpen ? underlineGradient : null
 
             Behavior on color { ColorAnimation { duration: 160 } }
@@ -315,7 +385,7 @@ Item {
     // Inactive rows instantiate nothing: the center fallback row must not
     // create duplicate module instances alongside the anchor layout.
     property bool active: true
-    spacing: Style.spaceReal(1)
+    spacing: Style.spaceReal(6)
 
     Repeater {
       model: {
@@ -390,7 +460,7 @@ Item {
 
         Row {
           visible: centerHost.anchorIndex > 0
-          spacing: Style.spaceReal(1)
+          spacing: Style.spaceReal(6)
           anchors.right: anchorSlot.left
           anchors.rightMargin: Style.spaceReal(1)
           anchors.verticalCenter: parent.verticalCenter
@@ -403,7 +473,7 @@ Item {
 
         Row {
           visible: centerHost.anchorIndex !== -1 && centerHost.anchorIndex < centerHost.centerEntries.length - 1
-          spacing: Style.spaceReal(1)
+          spacing: Style.spaceReal(6)
           anchors.left: anchorSlot.right
           anchors.leftMargin: Style.spaceReal(1)
           anchors.verticalCenter: parent.verticalCenter

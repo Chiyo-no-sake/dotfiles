@@ -69,7 +69,10 @@ QtObject {
 
   readonly property string normalColorToken: styleString("normal-color", "foreground")
   readonly property string hoverColorToken: styleString("hover-cursor-color", "foreground")
-  readonly property string selectedColorToken: styleString("selected-color", "foreground")
+  // Selected/active = the accent: an enabled or chosen value reads as
+  // accent-tinted, neutral grays mean "off" (UX state semantics; matches
+  // the hyprland active-border accent family).
+  readonly property string selectedColorToken: styleString("selected-color", "accent")
   readonly property string pressedColorToken: styleString("pressed-color", hoverColorToken)
   readonly property string focusColorToken: styleString("focus-color", hoverColorToken)
   readonly property string selectionColorToken: styleString("selection-color", "foreground")
@@ -81,7 +84,7 @@ QtObject {
 
   readonly property real normalFillAlpha:    styleAlpha("normal-fill-alpha", 0.04)
   readonly property real hoverFillAlpha:     styleAlpha("hover-cursor-fill-alpha", 0.08)
-  readonly property real selectedFillAlpha:  styleAlpha("selected-fill-alpha", 0.18)
+  readonly property real selectedFillAlpha:  styleAlpha("selected-fill-alpha", 0.26)
   readonly property real pressedFillAlpha:   styleAlpha("pressed-fill-alpha", 0.22)
   readonly property real focusFillAlpha:     styleAlpha("focus-fill-alpha", hoverFillAlpha)
   readonly property real selectionFillAlpha: styleAlpha("selection-fill-alpha", 0.35)

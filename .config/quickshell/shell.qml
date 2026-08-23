@@ -216,7 +216,7 @@ ShellRoot {
       if (list.length === 0) return "unknown"
       var inst = list[0]
       var out = { moduleName: inst.moduleName || "", opened: inst.opened === true }
-      var probe = ["sink", "source", "volumeSinkName", "focusedMonitor", "monitorScale", "brightnessPercent", "tunedProfile", "tunedAvailable", "visualizerOn", "amphetamineOn", "amphetamineInf", "amphetamineMinutesLeft", "themeMode"]
+      var probe = ["sink", "source", "volumeSinkName", "focusedMonitor", "monitorScale", "brightnessPercent", "tunedProfile", "tunedAvailable", "amphetamineOn", "amphetamineInf", "amphetamineMinutesLeft", "themeMode"]
       for (var i = 0; i < probe.length; i++) {
         var key = probe[i]
         try {

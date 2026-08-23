@@ -91,12 +91,11 @@ fi
 
 echo "[theme-toggle] applying $new_mode mode (wallpaper: $wallpaper)"
 
-# Regenerate every templated config in the new mode. Light mode gets an extra
-# contrast bump (see LIGHT_CONTRAST above); dark mode uses matugen's default.
-contrast_args=()
-if [[ "$new_mode" == "light" && "$LIGHT_CONTRAST" != "0" ]]; then
-    contrast_args=(--contrast "$LIGHT_CONTRAST")
-fi
+# Regenerate every templated config in the new mode. Light mode gets an
+# extra contrast bump (see LIGHT_CONTRAST above); dark mode uses matugen's
+# default — positive contrast LIGHTENS tone-80 accents (less saturated, the
+# opposite of what we want). Saturation pop comes from the vibrance boost
+# in Color.qml (bar) and opencode-theme-reload.sh (TUI theme) instead.
 matugen --mode "$new_mode" "${contrast_args[@]}" image "$wallpaper"
 
 # --- Reload pipeline (mirrors wallpaper-cycle.sh) -----------------------------

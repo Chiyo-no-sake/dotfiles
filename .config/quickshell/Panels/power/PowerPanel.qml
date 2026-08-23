@@ -39,7 +39,9 @@ Panel {
   }
   readonly property int tunedSelectedIndex: tunedPending >= 0 && tunedPending < tunedProfiles.length
     ? tunedPending : tunedCurrentIndex
-  readonly property bool showPercentage: setting("showPercentage", false) === true
+  // Percentage before the glyph is the default; right-click toggles it and
+  // persists through layout.json's inline settings.
+  readonly property bool showPercentage: setting("showPercentage", true) !== false
   // With the percentage shown the button paints a text block wider than an
   // icon, so the open-panel mark takes the painted width instead of the
   // icon-sized fraction of the slot the fallback assumes.

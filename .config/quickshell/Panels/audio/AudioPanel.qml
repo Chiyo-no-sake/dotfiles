@@ -124,11 +124,6 @@ Panel {
   // Carry sub-notch touchpad deltas between wheel events.
   property real wheelAccumulator: 0
 
-  // ---- Bar visualizer ----
-  // cava visualizer managed by the waybar wrapper script: pgrep is the
-  // cheap live-state probe, the wrapper's "toggle" arg owns spawn/pkill so
-  // the process logic lives in one place.
-  property bool visualizerOn: false
 
   readonly property var volumeSink: {
     if (volumeSinkName === "" || !sink) return sink
@@ -457,20 +452,9 @@ Panel {
     if (source && source.audio) source.audio.muted = !source.audio.muted
   }
 
-  function refreshVisualizer() {
-    if (!visualizerProc.running) visualizerProc.running = true
-  }
 
   // Optimistic flip for the instant knob throw; the settle refresh after
   // the wrapper exits reconciles against pgrep.
-  function toggleVisualizer() {
-    if (visualizerToggleProc.running) return
-    var home = Quickshell.env("HOME")
-    if (!home) return
-    visualizerOn = !visualizerOn
-    visualizerToggleProc.command = ["bash", "-c", home + "/.config/waybar/modules/visualizer-toggle.sh toggle"]
-    visualizerToggleProc.running = true
-  }
 
   // The hero switch is the whole panel's on/off, so it carries both channels
   // at once. It reads as on while anything is still audible, which keeps
@@ -622,30 +606,8 @@ Panel {
     }
   }
 
-  Process {
-    id: visualizerProc
-    command: ["bash", "-c", "pgrep -f hypr-cava-visualizer >/dev/null && echo on || echo off"]
-    stdout: StdioCollector {
-      waitForEnd: true
-      onStreamFinished: root.visualizerOn = String(text).trim() === "on"
-    }
-  }
 
-  Process {
-    id: visualizerToggleProc
-    stdout: StdioCollector { waitForEnd: true }
-    onExited: visualizerSettle.restart()
-  }
 
-  // The wrapper backgrounds the restart script, which itself sleeps ~0.8s
-  // before exec'ing the visualizer — an immediate pgrep would race the
-  // process appearing and bounce the switch, so refresh once settled.
-  Timer {
-    id: visualizerSettle
-    interval: 1200
-    repeat: false
-    onTriggered: root.refreshVisualizer()
-  }
 
   Timer {
     interval: 5000
@@ -654,7 +616,6 @@ Panel {
     triggeredOnStart: true
     onTriggered: {
       if (!sinkAvailabilityProc.running) sinkAvailabilityProc.running = true
-      if (!visualizerProc.running) visualizerProc.running = true
     }
   }
 
@@ -892,55 +853,6 @@ Panel {
                   root.cursorActive = true
                   root.focusSection = "output"
                   root.selectedIndex = -1
-                }
-              }
-            }
-
-            // Compact toggle on the section-header row pattern: glyph +
-            // label left, switch right. The switch owns its click (and its
-            // own hover ring, like the hero's), so it deliberately stays
-            // outside the j/k cursor model — mouse-driven by design.
-            Item {
-              width: parent.width
-              implicitHeight: Math.max(visualizerHeaderRow.implicitHeight, visualizerSwitch.implicitHeight)
-
-              Row {
-                id: visualizerHeaderRow
-                spacing: Style.space(6)
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-
-                Text {
-                  text: "󰓃"
-                  color: root.bar.foreground
-                  font.family: root.bar.fontFamily
-                  font.pixelSize: Style.font.title
-                  // Center on the header's glyphs, not its box: the header's
-                  // topPadding (Nerd Font overshoot guard) sits its text low.
-                  anchors.verticalCenter: visualizerHeader.verticalCenter
-                  anchors.verticalCenterOffset: Math.round(visualizerHeader.topPadding / 2)
-                }
-
-                PanelSectionHeader {
-                  id: visualizerHeader
-                  text: "VISUALIZER"
-                  foreground: root.bar.foreground
-                  fontFamily: root.bar.fontFamily
-                }
-              }
-
-              ToggleSwitch {
-                id: visualizerSwitch
-                checked: root.visualizerOn
-                foreground: root.bar.foreground
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                onToggled: root.toggleVisualizer()
-
-                PanelToolTip {
-                  visible: visualizerSwitch.containsMouse
-                  text: root.visualizerOn ? "Visualizer: ON" : "Visualizer: OFF"
-                  fontFamily: root.bar.fontFamily
                 }
               }
             }

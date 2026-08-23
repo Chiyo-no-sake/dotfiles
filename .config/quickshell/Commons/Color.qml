@@ -108,10 +108,34 @@ QtObject {
 
     foreground = safe(fg, foreground)
     background = safe(bg, background)
-    accent = safe(ac, accent)
-    accentB = safe(pal("tertiary", "#e5bad8"), accentB)
+    accent = vibrance(safe(ac, accent))
+    accentB = vibrance(safe(pal("tertiary", "#e5bad8"), accentB))
     urgent = safe(ur, urgent)
     muted = safe(mu, muted)
+  }
+
+  // Vibrance boost for accents: matugen's tone-80 dark-mode accents are
+  // pastel by design (their saturation ceiling is the wallpaper's source
+  // colors, and --contrast only shifts lightness). This raises saturation
+  // alone — never value — so light-mode accents (dark tones) keep their
+  // contrast on light backgrounds while dark-mode accents gain chroma.
+  function vibrance(hex) {
+    var h = String(hex).replace("#", "")
+    if (h.length !== 6) return hex
+    var r = parseInt(h.substr(0, 2), 16) / 255
+    var g = parseInt(h.substr(2, 2), 16) / 255
+    var b = parseInt(h.substr(4, 2), 16) / 255
+    var max = Math.max(r, g, b), min = Math.min(r, g, b)
+    var d = max - min
+    if (max <= 0 || d <= 0) return hex
+    var s = Math.min(0.85, Math.max((d / max) * 1.75, 0.45))
+    var dp = max * s
+    function mix(x) {
+      var level = x === max ? 1 : (x === min ? 0 : (x - min) / d)
+      return Math.round(255 * (max - dp * (1 - level)))
+    }
+    function pad(n) { return (n < 16 ? "0" : "") + n.toString(16) }
+    return "#" + pad(mix(r)) + pad(mix(g)) + pad(mix(b))
   }
 
   property FileView colorsFile: FileView {

@@ -106,6 +106,9 @@ BorderSurface {
   readonly property var _borderSpec: _showFocusRing ? _focusBorderSpec
     : hot                      ? _hoverBorderSpec
     : selected                 ? (Border.controlHasWidth("selected") ? _selectedBorderSpec : (bordered ? _normalBorderSpec : Border.none()))
+    // Active = "this value is enabled": the accent ring makes the state
+    // readable at a glance, not just the subtle selected tint underneath.
+    : active                   ? Border.withWidth(_selectedBorderSpec, Style.normalBorderWidth)
     : bordered                 ? _normalBorderSpec
     : Border.none()
 

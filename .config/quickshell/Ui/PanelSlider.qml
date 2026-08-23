@@ -11,8 +11,11 @@ Item {
   property real step: 0.05
   property bool integer: false
   property color trackColor: bar ? Style.selectedFillFor(bar.foreground, Color.accent) : "#333"
-  property color fillColor: bar ? bar.foreground : Color.foreground
-  property color knobColor: bar ? bar.foreground : Color.foreground
+  // Value fill and knob carry the accent: the slider's current value is
+  // its active state, so it reads accent-colored against the neutral
+  // track (UX state semantics), not text-gray.
+  property color fillColor: Color.accent
+  property color knobColor: Color.accent
   property bool dragging: false
   property real trackHeight: Math.max(4, Math.round(Style.spacing.controlHeight * 0.11))
   property real knobSize: Math.max(14, Math.round(Style.spacing.controlHeight * 0.38))

@@ -91,3 +91,13 @@ output_path = "~/.var/app/org.nickvision.cavalier/config/Nickvision Cavalier/con
 input_path = "~/.config/matugen/templates/aura-colors.json"
 output_path = "~/.config/aura-colors/colors.json"
 post_hook = "~/dotfiles/scripts/runtime/aura-sync.sh"
+
+[templates.opencode]
+input_path = "~/.config/matugen/templates/opencode.json"
+output_path = "~/.config/opencode/themes/matugen.json"
+post_hook = "~/dotfiles/scripts/runtime/opencode-theme-reload.sh"
+
+[templates.aoe]
+input_path = "~/.config/matugen/templates/aoe.toml"
+output_path = "~/.config/agent-of-empires/themes/matugen.toml"
+post_hook = "~/dotfiles/scripts/runtime/aoe-theme-reload.sh"

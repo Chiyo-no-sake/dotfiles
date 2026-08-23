@@ -229,6 +229,15 @@ BarWidget {
   implicitWidth: root.vertical ? root.barSize : trayContent.implicitWidth
   implicitHeight: root.vertical ? trayContent.implicitHeight : root.barSize
 
+  // Visible extent for the bar's underline marker: the slot always
+  // reserves the drawer's slide-in area, but only the chevron onward is
+  // painted when collapsed. UnderlineWidth excludes the reserved gap and
+  // grows with revealProgress, so the marker expands with the drawer.
+  // Read by Bar's ModuleSlot (optional module-contract property).
+  readonly property real underlineWidth: root.vertical
+    ? root.barSize
+    : trayContent.implicitWidth - (allItems.length > 0 ? (drawerExtent - revealExtent) : 0)
+
   Behavior on revealProgress {
     NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
   }

@@ -376,6 +376,37 @@ PanelWindow {
 
   // --- card ----------------------------------------------------------------
 
+  // Elevation shadow: stacked soft rects behind the card. Anchored to the
+  // card so they follow its position, and opacity-bound so they play the
+  // same open/close fade. Plain Rectangles swallow no input, so the
+  // dismissal MouseArea below keeps working through them.
+  Rectangle {
+    anchors.centerIn: card
+    anchors.verticalCenterOffset: Math.round(Style.spaceReal(2))
+    width: card.width + Style.spaceReal(12)
+    height: card.height + Style.spaceReal(12)
+    radius: Style.cornerRadius + Style.spaceReal(6)
+    color: Util.alpha("#000000", 0.045)
+    opacity: card.opacity
+  }
+  Rectangle {
+    anchors.centerIn: card
+    anchors.verticalCenterOffset: Math.round(Style.spaceReal(1))
+    width: card.width + Style.spaceReal(7)
+    height: card.height + Style.spaceReal(7)
+    radius: Style.cornerRadius + Style.spaceReal(3)
+    color: Util.alpha("#000000", 0.07)
+    opacity: card.opacity
+  }
+  Rectangle {
+    anchors.centerIn: card
+    width: card.width + Style.spaceReal(3)
+    height: card.height + Style.spaceReal(3)
+    radius: Style.cornerRadius + Style.spaceReal(1)
+    color: Util.alpha("#000000", 0.12)
+    opacity: card.opacity
+  }
+
   BorderSurface {
     id: card
     x: root.cardOrigin.x
