@@ -1,0 +1,63 @@
+#!/bin/bash
+# Set or get display brightness. Internal backlight via brightnessctl.
+# Ported from omarchy-brightness-display for a plain Fedora laptop setup.
+# Usage:
+#   qs-brightness-display                      -> print current percent
+#   qs-brightness-display N%                    -> set percent
+#   qs-brightness-display +N / -N               -> step
+# Options: --no-osd, --monitor NAME (accepted, external monitors ignored)
+
+set -euo pipefail
+
+no_osd=0
+monitor=""
+value=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --no-osd) no_osd=1 ;;
+  --monitor)
+    if [[ $# -lt 2 ]]; then
+      echo "qs-brightness-display: --monitor requires a name" >&2
+      exit 1
+    fi
+    monitor="$2"
+    shift
+    ;;
+  --monitor=*) monitor="${1#*=}" ;;
+  *) value="$1" ;;
+  esac
+  shift
+done
+
+have_backlight() {
+  command -v brightnessctl >/dev/null 2>&1 &&
+    [[ -e /sys/class/backlight ]] && [[ -n "$(ls -A /sys/class/backlight 2>/dev/null || true)" ]]
+}
+
+if ! have_backlight; then
+  # No internal backlight (desktop / external only) — report unavailable.
+  echo "unavailable"
+  exit 0
+fi
+
+cur_percent() {
+  local cur max
+  cur="$(brightnessctl g 2>/dev/null || echo 0)"
+  max="$(brightnessctl m 2>/dev/null || echo 1)"
+  [[ "$max" -gt 0 ]] || max=1
+  echo $((cur * 100 / max))
+}
+
+if [[ -z "$value" || "$value" == "get" ]]; then
+  cur_percent
+  exit 0
+fi
+
+if [[ "$value" =~ ^[0-9]+%?$ ]]; then
+  brightnessctl -q s "${value%%%}%"
+elif [[ "$value" == "mute" ]]; then
+  brightnessctl -q s 1
+elif [[ "$value" =~ ^[+-][0-9]+$ ]]; then
+  brightnessctl -q s "${value}%"
+fi

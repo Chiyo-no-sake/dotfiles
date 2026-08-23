@@ -15,6 +15,10 @@ output_path = "~/.config/hypr/colors.conf"
 input_path = "~/.config/matugen/templates/waybar.css"
 output_path = "~/.config/waybar/colors.css"
 
+[templates.quickshell]
+input_path = "~/.config/matugen/templates/quickshell.json"
+output_path = "~/.config/quickshell/colors.json"
+
 [templates.kitty]
 input_path = "~/.config/matugen/templates/kitty.conf"
 output_path = "~/.config/kitty/colors-dynamic.conf"

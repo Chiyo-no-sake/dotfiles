@@ -1,0 +1,254 @@
+#!/bin/bash
+
+# Show, set, or adjust focused Hyprland monitor scaling.
+# This machine runs kanshi, which owns output configuration and re-applies
+# its profiles on every monitor event — a bare `hyprctl keyword` is reverted
+# instantly. So a scale change is persisted as a managed block of global
+# kanshi output defaults (profiles that don't set scale inherit them) and
+# kanshi is asked to reload via SIGHUP; the hyprctl keyword still runs for
+# immediate effect so the change doesn't wait for kanshi's reaction.
+
+SCALES=(1 1.25 1.6 2 3 4)
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/qs"
+SCALE_LOG="$STATE_DIR/monitor-scaling.log"
+KANSHI_CONF="${XDG_CONFIG_HOME:-$HOME/.config}/kanshi/config"
+HYPR_LOCAL_CONF="$HOME/.config/hypr/monitors-local.conf"
+
+usage() {
+  echo "Usage: qs-hyprland-monitor-scaling [up|down|SCALE]"
+}
+
+focused_monitor_json() {
+  hyprctl monitors -j | jq -e -c '.[] | select(.focused == true)'
+}
+
+focused_monitor_scale() {
+  focused_monitor_json | jq -er '.scale'
+}
+
+cmdline_for_pid() {
+  local pid="$1"
+
+  [[ -r /proc/$pid/cmdline ]] || return 0
+  tr '\0\t\n' '   ' <"/proc/$pid/cmdline" | sed -E 's/[[:space:]]+/ /g; s/[[:space:]]+$//'
+}
+
+audit_scale_change() {
+  local requested="$1"
+  local active_monitor="$2"
+  local current_scale="$3"
+  local new_scale="$4"
+  local parent_pid="$PPID"
+  local grandparent_pid
+  local parent_cmd
+  local grandparent_cmd
+
+  mkdir -p "$STATE_DIR" || return 0
+
+  grandparent_pid=$(ps -o ppid= -p "$parent_pid" 2>/dev/null | tr -d ' ')
+  parent_cmd=$(cmdline_for_pid "$parent_pid")
+  grandparent_cmd=$(cmdline_for_pid "$grandparent_pid")
+
+  printf 'at=%s\trequested=%s\tcurrent=%s\tnew=%s\tmonitor=%s\tpid=%s\tppid=%s\tparent=%s\tgppid=%s\tgrandparent=%s\n' \
+    "$(date --iso-8601=seconds)" \
+    "$requested" \
+    "$current_scale" \
+    "$new_scale" \
+    "$active_monitor" \
+    "$$" \
+    "$parent_pid" \
+    "$parent_cmd" \
+    "$grandparent_pid" \
+    "$grandparent_cmd" >>"$SCALE_LOG"
+}
+
+# Hyprland only accepts scales where the mode divides into whole logical
+# pixels (in 1/120 steps), so clean scales are divisors of gcd(w*120, h*120).
+# Round the requested scale up to the nearest clean value.
+clean_scale() {
+  awk -v scale="$1" -v width="$2" -v height="$3" '
+    function gcd(a, b, t) { while (b) { t = a % b; a = b; b = t } return a }
+    BEGIN {
+      g = gcd(width * 120, height * 120)
+      k = int(scale * 120 + 0.5)
+      if (k > g) k = g
+      while (g % k != 0) k++
+      printf "%g\n", k / 120
+    }'
+}
+
+normalize_scale() {
+  awk 'NR == 1 { printf "%g\n", $0 }'
+}
+
+# Rewrite the scale for `monitor` inside every kanshi profile stanza that
+# enables it. Kanshi re-applies the matching profile on reload, so the edit
+# must land in the profile bodies themselves — global top-level output
+# stanzas are NOT merged with profile-level ones.
+persist_scale_kanshi() {
+  local monitor="$1"
+  local scale="$2"
+  local block_begin="# BEGIN qs-monitor-scale (managed by qs-hyprland-monitor-scaling)"
+  local block_end="# END qs-monitor-scale"
+  local tmp
+
+  [[ -f $KANSHI_CONF ]] || return 0
+
+  tmp="$(mktemp)"
+  awk -v begin="$block_begin" -v end="$block_end" -v monitor="$monitor" -v scale="$scale" '
+    $0 == begin { skip = 1; next }
+    $0 == end { skip = 0; next }
+    skip { next }
+    {
+      # Match "output <name> ..." with the exact output name, enabled lines only.
+      if ($1 == "output" && $2 == monitor && $0 !~ / disable/) {
+        if ($0 ~ / scale [0-9.]+/) {
+          sub(/ scale [0-9.]+/, " scale " scale)
+        } else {
+          $0 = $0 " scale " scale
+        }
+      }
+      print
+    }
+  ' "$KANSHI_CONF" >"$tmp" && mv "$tmp" "$KANSHI_CONF"
+}
+
+# Legacy cleanup: earlier revisions persisted into monitors-local.conf.
+strip_legacy_block() {
+  local block_begin="# BEGIN qs-monitor-scale (managed by qs-hyprland-monitor-scaling)"
+  local block_end="# END qs-monitor-scale"
+  local tmp
+
+  [[ -f $HYPR_LOCAL_CONF ]] || return 0
+  grep -q "$block_begin" "$HYPR_LOCAL_CONF" || return 0
+
+  tmp="$(mktemp)"
+  awk -v begin="$block_begin" -v end="$block_end" '
+    $0 == begin { skip = 1; next }
+    $0 == end { skip = 0; next }
+    !skip { print }
+  ' "$HYPR_LOCAL_CONF" >"$tmp" && mv "$tmp" "$HYPR_LOCAL_CONF"
+}
+
+reload_kanshi() {
+  # kanshi re-reads its config on SIGHUP.
+  pkill -HUP -x kanshi 2>/dev/null || true
+}
+
+set_scale() {
+  local requested_scale="$1"
+  local requested="${2:-$requested_scale}"
+  local monitor_info
+  monitor_info="$(focused_monitor_json)"
+  local active_monitor
+  active_monitor="$(echo "$monitor_info" | jq -r '.name')"
+  local current_scale
+  current_scale="$(echo "$monitor_info" | jq -r '.scale')"
+  local width
+  width="$(echo "$monitor_info" | jq -r '.width')"
+  local height
+  height="$(echo "$monitor_info" | jq -r '.height')"
+  local refresh_rate
+  refresh_rate="$(echo "$monitor_info" | jq -r '.refreshRate')"
+  local new_scale
+  new_scale="$(clean_scale "$requested_scale" "$width" "$height")"
+  local mode
+  mode="${width}x${height}@$(awk -v r="$refresh_rate" 'BEGIN { printf "%.2f", r }')"
+
+  # Immediate effect; kanshi re-applies the same value after its reload.
+  hyprctl keyword monitor "$active_monitor,$mode,auto,$new_scale" >/dev/null
+  persist_scale_kanshi "$active_monitor" "$new_scale"
+  strip_legacy_block
+  reload_kanshi
+  audit_scale_change "$requested" "$active_monitor" "$current_scale" "$new_scale"
+}
+
+scale_from_current() {
+  local direction="${1:-}"
+  local width="${2:-}"
+  local height="${3:-}"
+
+  awk -v direction="$direction" -v list="${SCALES[*]}" -v width="$width" -v height="$height" '
+    function gcd(a, b, t) { while (b) { t = a % b; a = b; b = t } return a }
+    function clean(scale,    g, k) {
+      g = gcd(width * 120, height * 120)
+      k = int(scale * 120 + 0.5)
+      if (k > g) k = g
+      while (g % k != 0) k++
+      return k / 120
+    }
+    NR == 1 { scale = $0; found = 1 }
+    END {
+      if (!found) exit 1
+
+      preset_count = split(list, presets, " ")
+      for (i = 1; i <= preset_count; i++) {
+        effective = clean(presets[i])
+        key = sprintf("%.8f", effective)
+        distance = presets[i] - effective
+        if (distance < 0) distance = -distance
+
+        # Multiple presets can collapse to the same clean scale. Keep only the
+        # closest label so stepping always moves to a distinct effective value.
+        if (!(key in effective_index)) {
+          effective_index[key] = ++n
+          effective_scales[n] = effective
+          scales[n] = presets[i]
+          distances[n] = distance
+        } else {
+          idx = effective_index[key]
+          if (distance < distances[idx]) {
+            scales[idx] = presets[i]
+            distances[idx] = distance
+          }
+        }
+      }
+
+      # Snap to the nearest effective scale first. Hyprland reports floating
+      # point values, so exact comparisons can otherwise get stuck.
+      best = 1; best_diff = 1e9
+      for (i = 1; i <= n; i++) {
+        diff = scale - effective_scales[i]; if (diff < 0) diff = -diff
+        if (diff < best_diff) { best_diff = diff; best = i }
+      }
+
+      if (direction == "next") {
+        print scales[(best < n ? best + 1 : n)]
+      } else if (direction == "previous") {
+        print scales[(best > 1 ? best - 1 : 1)]
+      } else {
+        print scales[best]
+      }
+    }'
+}
+
+case "${1:-}" in
+"")
+  focused_monitor_scale | normalize_scale
+  ;;
+-h | --help)
+  usage
+  ;;
+up)
+  monitor_info=$(focused_monitor_json)
+  set_scale "$(echo "$monitor_info" | jq -r '.scale' | scale_from_current next \
+    "$(echo "$monitor_info" | jq -r '.width')" "$(echo "$monitor_info" | jq -r '.height')")" "up"
+  ;;
+down)
+  monitor_info=$(focused_monitor_json)
+  set_scale "$(echo "$monitor_info" | jq -r '.scale' | scale_from_current previous \
+    "$(echo "$monitor_info" | jq -r '.width')" "$(echo "$monitor_info" | jq -r '.height')")" "down"
+  ;;
+1 | 1.25 | 1.6 | 2 | 3 | 4)
+  set_scale "$1" "$1"
+  ;;
+*)
+  if [[ $1 =~ ^[0-9]+([.][0-9]+)?$ ]] &&
+    awk -v scale="$1" 'BEGIN { exit !(scale >= 1 && scale <= 4) }'; then
+    set_scale "$1" "$1"
+  else
+    usage >&2
+    exit 1
+  fi
+  ;;
+esac

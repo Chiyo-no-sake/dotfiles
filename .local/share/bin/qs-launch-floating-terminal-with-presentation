@@ -1,0 +1,13 @@
+#!/bin/bash
+# Launch a floating terminal running a command, mirroring
+# omarchy-launch-floating-terminal-with-presentation for kitty.
+# Usage: qs-launch-floating-terminal-with-presentation <command...>
+
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+  echo "Usage: qs-launch-floating-terminal-with-presentation <command...>" >&2
+  exit 1
+fi
+
+exec setsid kitty --class floating-terminal --title Terminal -e bash -c "$*" >/dev/null 2>&1 &

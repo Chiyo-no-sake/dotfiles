@@ -1,0 +1,21 @@
+{
+  "left": [
+    { "id": "workspaces" }
+  ],
+  "center": [
+    { "id": "wsmode" },
+    { "id": "clock", "anchor": true }
+  ],
+  "right": [
+    { "id": "tray" },
+    { "id": "cpu" },
+    { "id": "memory" },
+    { "id": "netspeed" },
+    { "id": "clipboard" },
+    { "id": "audio" },
+    { "id": "network" },
+    { "id": "bluetooth" },
+    { "id": "monitor" },
+    { "id": "power" }
+  ]
+}

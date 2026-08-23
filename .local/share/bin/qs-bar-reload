@@ -1,0 +1,43 @@
+#!/bin/bash
+# Restart (or start) the quickshell bar — for iterating after big config
+# changes where an in-shell reload is not enough.
+# Usage:
+#   qs-bar-reload    # kill any 'quickshell -p ...' instance, relaunch detached
+# Logs to ~/.cache/qs-bar.log (stderr is where QML warnings land).
+
+set -euo pipefail
+
+CONF="$HOME/.config/quickshell"
+LOG="$HOME/.cache/qs-bar.log"
+
+if ! command -v quickshell >/dev/null 2>&1; then
+    echo "Error: quickshell is not installed (sudo dnf install quickshell)" >&2
+    exit 1
+fi
+
+if pgrep -x quickshell >/dev/null 2>&1; then
+    pkill -x quickshell 2>/dev/null || true
+    # SIGKILL fallback: quickshell rewrites its argv, so always match the comm name;
+    # TERM can also be missed mid-shutdown, leaving stacked bars.
+    for _ in $(seq 1 10); do
+        pgrep -x quickshell >/dev/null 2>&1 || break
+        sleep 0.1
+    done
+    pkill -9 -x quickshell 2>/dev/null || true
+    # Wait up to 2s for the old instance to exit so the new one starts clean.
+    for _ in $(seq 1 20); do
+        pgrep -x quickshell >/dev/null 2>&1 || break
+        sleep 0.1
+    done
+fi
+
+setsid quickshell -p "$CONF" >>"$LOG" 2>&1 < /dev/null &
+disown
+
+echo "quickshell running with config: $CONF (log: $LOG)"
+
+# Sanity: exactly one instance must exist afterwards.
+COUNT=$(pgrep -x quickshell | wc -l)
+if [ "$COUNT" -gt 1 ]; then
+    echo "Warning: $COUNT quickshell instances running" >&2
+fi

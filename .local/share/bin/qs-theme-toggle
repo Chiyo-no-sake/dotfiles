@@ -1,0 +1,37 @@
+#!/bin/bash
+# pty wrapper around the theme-toggle engine.
+#
+# matugen interactively prompts for the source color and fails without a
+# controlling terminal ("not a terminal"); the engine deliberately runs
+# inline to inherit one. Callers without a TTY (the quickshell display
+# panel's Process) come through here instead: python's pty module gives
+# the engine a terminal and auto-answers the prompt with the default.
+
+ENGINE="$HOME/dotfiles/scripts/runtime/theme-toggle.sh"
+
+exec python3 - "$ENGINE" "$@" <<'PYEOF'
+import os, pty, sys
+
+engine = sys.argv[1]
+args = sys.argv[2:]
+
+pid, fd = pty.fork()
+if pid == 0:
+    os.execv("/bin/bash", ["bash", engine] + args)
+
+import time
+time.sleep(1.5)
+try:
+    os.write(fd, b"\r")  # accept matugen's default source color
+except OSError:
+    pass
+
+try:
+    while True:
+        chunk = os.read(fd, 4096)
+        if not chunk:
+            break
+except OSError:
+    pass
+os.waitpid(pid, 0)
+PYEOF

@@ -232,6 +232,44 @@ Triggers:
 
 The choice persists in `~/.cache/theme-mode`. `wallpaper-cycle.sh` reads that file so the daemon keeps you in light mode across wallpaper rotations until you toggle back.
 
+### Quickshell bar (opt-in waybar replacement)
+
+A custom Hyprland shell built on [Quickshell](https://quickshell.outfoxxed.me) with Omarchy-derived panels: audio (volume + output picker + per-app mixer), network, bluetooth, power, monitor — plus waybar-parity widgets (workspaces, clock, tray). Architecture, layer contracts and the extension points are documented in `.config/quickshell/ARCHITECTURE.md`.
+
+Install (Fedora 42):
+
+```bash
+sudo dnf install quickshell
+# fallback if the package is not in the enabled repos:
+sudo dnf copr enable -y errornointernet/quickshell && sudo dnf install quickshell
+```
+
+Theming is automatic: `[templates.quickshell]` in `.config/matugen/config.toml` renders the palette from `.config/matugen/templates/quickshell.json` to `~/.config/quickshell/colors.json` (generated at runtime, gitignored) on every wallpaper change. The bar's `Commons/Color.qml` watches that file and re-themes every surface live — never hand-edit it.
+
+Trying it alongside waybar (safe: both bars render as separate layers, waybar stays untouched):
+
+```bash
+quickshell -p ~/.config/quickshell                             # start the bar manually
+qs-bar-reload                                                  # restart it after big config changes
+quickshell ipc -p ~/.config/quickshell call shell ping         # IPC smoke test -> "ok"
+```
+
+Panel keybinds (in `hyprland.conf`; Super+Ctrl was unused, so no collisions with the `Super+A`/`Super+B` pypr toggles):
+
+- `Super+Ctrl+A` — audio panel
+- `Super+Ctrl+W` — network panel
+- `Super+Ctrl+B` — bluetooth panel
+- `Super+Ctrl+D` — monitor panel (brightness/scaling)
+- `Super+Ctrl+P` — power panel (battery/profiles)
+
+To make it the primary bar, uncomment `exec-once = quickshell -p ~/.config/quickshell` in the AUTOSTART section of `hyprland.conf` and comment out the waybar `exec` line above it. Rollback is the reverse — one line each way.
+
+Adding a module is one file + one registry line + one layout entry:
+
+1. Create `Panels/<name>/` (popup-capable) or `Bar/widgets/<name>.qml` (plain widget) implementing the module contract (`bar`, `moduleName`, `settings`; panels add `open()/close()/toggle()`).
+2. Register it in `.config/quickshell/Registry.qml` (id -> component URL).
+3. Add `{ "id": "<name>" }` to the desired section of `.config/quickshell/layout.json`.
+
 ### Audio visualizer
 
 A cava-based audio visualizer runs on the Wayland background layer behind all windows. It auto-detects monitor refresh rate and scales framerate based on power profile. Restart it after power profile change via `Super+F7/F8/F9`.
@@ -279,6 +317,23 @@ Waybar eye module in the right cluster:
 
 CLI: `amphetamine.sh {on [min]|off|toggle|bump [min]|status}`.
 
+### Clipboard history
+
+`cliphist` records every clipboard change into `~/.cache/cliphist/db` via `wl-paste --watch cliphist store` (started in `hyprland.conf`, max 750 entries).
+
+Installed as a static release binary at `.local/share/bin/cliphist` (on PATH) — the sdegler/hyprland copr no longer builds for Fedora 42. To update:
+
+```bash
+cd ~/dotfiles/.local/share/bin
+curl -sL -o cliphist "https://github.com/sentriz/cliphist/releases/download/v0.7.0/v0.7.0-linux-amd64"
+chmod +x cliphist
+```
+
+- `Super+V` — rofi picker (`scripts/runtime/clipboard-history.sh`), themed by `.config/rofi/clipboard.rasi` with matugen colors
+- Waybar module (right cluster, next to the tray): click — pick an entry, middle-click — delete entries (multi-select), right-click — wipe history; tooltip shows the last 8 entries
+
+Caveat: history is stored in plaintext, so copied passwords (e.g. from Bitwarden) end up in it — right-click the waybar module to wipe.
+
 ### Keybind cheat sheet
 
 Press `Super+/` to open a searchable keybind reference. It parses `hyprland.conf` live so it's always up to date.
@@ -292,6 +347,44 @@ Wired up in two places:
 - User `.desktop` override at `.local/share/applications/btop.desktop` for GUI launchers (takes precedence over `/usr/share/applications/btop.desktop` per XDG)
 
 `.config/btop` is excluded from stow for this reason — nothing to symlink. The matugen-generated theme still lives at `~/.config/btop/themes/matugen.theme` (default path, regenerated per wallpaper change).
+
+### Dev-tool resource cages (keep tsc / quality / pytest from saturating the machine)
+
+Heavy dev commands — especially agents invoking them as `bunx tsc`,
+`bun run quality` (webapp) or `uv run pytest` (backend) — can eat the whole
+box. Shell wrappers can't intercept these (agents spawn non-interactive
+shells; package managers resolve `node_modules/.bin` paths directly), so
+instead user systemd units cage the processes at the cgroup level:
+
+- `tsc-cage.service` — `CPUQuota=400%` + `MemoryMax=4G`. Cages tsc and the
+  whole `quality` pipeline (dedupe, prettier, depcruise, eslint).
+- `pytest-cage.service` — `CPUQuota=800%` + `MemoryMax=8G`. Cages pytest via
+  `uv run pytest`, `.venv/bin/pytest` or `python -m pytest`, including xdist
+  workers (backend runs `-n 6`).
+- `dev-cage-watcher.service` — runs `scripts/runtime/dev-cage-watcher.sh`,
+  which every second migrates any process matching a rule (plus its **entire
+  subtree**, so multi-process chains like `bun run quality → node …/bin/tsc`
+  are fully covered) into the matching cage. Children born after a migration
+  inherit the cage automatically; over-limit memory is OOM-killed inside the
+  cage only. Patterns match real invocations (script paths, `run <script>`
+  argv), so commands that merely mention a tool are never caged.
+
+One-time setup (after `stow .`):
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now tsc-cage.service pytest-cage.service dev-cage-watcher.service
+```
+
+Verify: run `bun run quality` / `uv run pytest` and check
+`systemctl --user status tsc-cage.service pytest-cage.service` — the PIDs
+appear in the CGroup line (`nr_throttled` climbs in the cage's `cpu.stat`
+under load). To change a ceiling, edit the cage unit, then
+`systemctl --user daemon-reload && systemctl --user restart <cage>`.
+
+Caveat: concurrent runs share their cage's budget (two tscs split 4 cores /
+4 GiB), and a kill-everything-in-the-cage cleanup will also hit unrelated
+runs that legitimately landed there — kill by PID, not by cage.
 
 ### Bitwarden (desktop + biometric unlock)
 
@@ -347,4 +440,82 @@ To pick up edits to the skill after pulling changes:
 
 ```bash
 claude plugin marketplace update luca-dotfiles
+```
+# Local speech-to-text development
+
+The Intel NPU integration is developed in `~/repos/hyprwhspr`; do not use a
+temporary checkout because model exports and compiled OpenVINO caches are large
+and persistent during hardware validation.
+
+Hyprland's animated mic OSD uses Fedora's native GTK4 bindings, while the
+OpenVINO service runs in a Python 3.11 virtual environment. Create a small
+Python 3.13 OSD environment that inherits the system GTK packages and supplies
+NumPy:
+
+```bash
+python3 -m venv --system-site-packages ~/.local/share/hyprwhspr/mic-osd-venv
+~/.local/share/hyprwhspr/mic-osd-venv/bin/python -m pip install numpy==2.2.6
+```
+
+The service discovers this interpreter automatically. Verify overlay mode with:
+
+```bash
+hyprwhspr mic-osd status
+journalctl --user -u hyprwhspr.service | grep 'Mic-OSD daemon started'
+```
+
+Hyprland starts `hyprwhspr.service` explicitly after importing the Wayland
+environment. This is required because Hyprland does not activate systemd's
+`graphical-session.target`, even when the service is enabled under that target.
+
+Speech-to-text uses push-to-talk: hold `Super+M` to record, then release `M` to
+stop, transcribe, and insert the text at the focused cursor. The corresponding
+hyprwhspr setting is `"recording_mode": "push_to_talk"`. The binding uses
+`scripts/runtime/hyprwhspr-push-to-talk.sh`, which retries a release that lands
+while the daemon is still finishing recording startup.
+
+The OpenVINO NPU backend uses the multilingual Whisper `small` model with
+automatic language detection (`"language": null`), so the same shortcut works
+for both English and Italian. Models ending in `.en` are English-only and must
+not be used for bilingual dictation. Keep `"sampling_strategy": "greedy"`:
+OpenVINO's static NPU Whisper pipeline does not support beam search.
+
+On Fedora, Intel NPU acceleration requires all of the following:
+
+- `intel_vpu` kernel driver and `/dev/accel/accel0`
+- Intel NPU Level Zero UMD (`libze_intel_npu.so`)
+- Intel NPU compiler (`libopenvino_intel_npu_compiler.so`)
+- A mutually supported OpenVINO/UMD/compiler release combination
+
+Verify the userspace stack from the hyprwhspr virtual environment:
+
+```bash
+python -c 'import openvino as ov; c=ov.Core(); print(c.available_devices); print(c.get_property("NPU", "NPU_COMPILER_VERSION"))'
+```
+
+`NPU_COMPILER_VERSION=0` means the device is visible but the compiler interface
+is missing or incompatible. Update the Intel NPU userspace driver before relying
+on NPU acceleration. The hyprwhspr backend falls back to OpenVINO CPU by default.
+# Intel NPU userspace driver
+
+Meteor Lake NPU inference through OpenVINO requires the Intel Level Zero NPU
+UMD and matching NPU compiler in addition to Fedora's `intel_vpu` kernel driver.
+Install the tested Intel `1.35.0` userspace release with:
+
+```bash
+bash ~/dotfiles/scripts/runtime/install-intel-npu-userspace.sh install
+```
+
+The script downloads the release into `~/.cache/intel-npu-driver/`, verifies its
+SHA-256, preserves existing compatibility links, installs only the userspace UMD
+and compiler into `/usr/lib64`, runs `ldconfig`, and verifies that OpenVINO
+reports a non-zero `NPU_COMPILER_VERSION`. It does not replace Fedora's kernel
+module or firmware. This matches Intel's package layout and lets `ldconfig`
+select the newest versioned `libze_intel_npu.so` implementation.
+
+Verification and rollback:
+
+```bash
+bash ~/dotfiles/scripts/runtime/install-intel-npu-userspace.sh verify
+bash ~/dotfiles/scripts/runtime/install-intel-npu-userspace.sh rollback
 ```
