@@ -63,6 +63,14 @@ Item {
     color: root.fillColor
     width: track.width * root.progress
 
+    // Value fill carries the bar's active gradient (primary → tertiary,
+    // the same pair as the panel underlines and hyprland borders).
+    gradient: Gradient {
+      orientation: Gradient.Horizontal
+      GradientStop { position: 0; color: Color.accent }
+      GradientStop { position: 1; color: Color.accentB }
+    }
+
     Behavior on width {
       enabled: !root.dragging
       NumberAnimation { duration: 140; easing.type: Easing.OutCubic }

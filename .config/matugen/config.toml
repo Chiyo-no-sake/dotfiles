@@ -10,6 +10,7 @@ command = "swww img {{ image }}"
 [templates.hyprland]
 input_path = "~/.config/matugen/templates/hyprland.conf"
 output_path = "~/.config/hypr/colors.conf"
+post_hook = "~/dotfiles/scripts/runtime/hypr-colors-boost.sh"
 
 [templates.waybar]
 input_path = "~/.config/matugen/templates/waybar.css"

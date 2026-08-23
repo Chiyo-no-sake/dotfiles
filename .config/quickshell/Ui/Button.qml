@@ -82,6 +82,12 @@ BorderSurface {
   readonly property var _hoverBorderSpec: Border.controlSpec("hover-cursor", root.foreground, root.accent)
   readonly property var _selectedBorderSpec: Border.controlSpec("selected", root.foreground, root.accent)
   readonly property var _normalBorderSpec: Border.controlSpec("normal", root.foreground, root.accent)
+  // Active ring: the accent pair as a 45° gradient border — the exact
+  // treatment hyprland gives the focused window's border.
+  readonly property var _activeGradientBorderSpec: Border.withWidth(
+    { color: Color.accent,
+      gradient: { colors: [Color.accent, Color.accentB], angle: 45, enabled: true } },
+    Style.normalBorderWidth)
   readonly property real _reservedBorderTop: Math.max(
     focusable ? Border.top(_focusBorderSpec) : 0,
     Border.top(_hoverBorderSpec),
@@ -106,11 +112,28 @@ BorderSurface {
   readonly property var _borderSpec: _showFocusRing ? _focusBorderSpec
     : hot                      ? _hoverBorderSpec
     : selected                 ? (Border.controlHasWidth("selected") ? _selectedBorderSpec : (bordered ? _normalBorderSpec : Border.none()))
-    // Active = "this value is enabled": the accent ring makes the state
-    // readable at a glance, not just the subtle selected tint underneath.
-    : active                   ? Border.withWidth(_selectedBorderSpec, Style.normalBorderWidth)
+    // Active = "this value is enabled": the primary→tertiary gradient ring
+    // (same pair as underlines, sliders, and hyprland active borders) makes
+    // the state readable at a glance.
+    : active                   ? _activeGradientBorderSpec
     : bordered                 ? _normalBorderSpec
     : Border.none()
+
+  // Gradient fill while active/selected: a tint gradient across the same
+  // accent pair as the ring, replacing the flat selected tint.
+  gradient: (active || selected)
+    && !mouseArea.pressed
+    && !_showFocusRing
+    && !hot
+      ? activeFillGradient
+      : null
+
+  Gradient {
+    id: activeFillGradient
+    orientation: Gradient.Horizontal
+    GradientStop { position: 0; color: Style.selectedFillFor(root.foreground, Color.accent) }
+    GradientStop { position: 1; color: Style.selectedFillFor(root.foreground, Color.accentB) }
+  }
 
   color: mouseArea.pressed ? Style.pressedFillFor(root.foreground, root.accent)
     : _showFocusRing       ? Style.focusFillFor(root.foreground, root.accent)

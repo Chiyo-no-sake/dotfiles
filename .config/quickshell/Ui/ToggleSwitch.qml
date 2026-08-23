@@ -73,6 +73,13 @@ Item {
     borderSpec: Border.controlSpec("hover-cursor", root.foreground, root.accent)
   }
 
+  Gradient {
+    id: checkedGradient
+    orientation: Gradient.Horizontal
+    GradientStop { position: 0; color: Style.selectedFillFor(root.foreground, Color.accent) }
+    GradientStop { position: 1; color: Style.selectedFillFor(root.foreground, Color.accentB) }
+  }
+
   BorderSurface {
     id: track
     width: root.trackWidth
@@ -83,6 +90,10 @@ Item {
       ? Style.selectedFillFor(root.foreground, root.accent)
       : Style.normalFillFor(root.foreground, root.accent)
     borderSpec: Border.controlSpec(root.checked ? "selected" : "normal", root.foreground, root.accent)
+
+    // Checked = active: the track carries the primary→tertiary gradient
+    // (same pair as underlines, sliders, and hyprland active borders).
+    gradient: root.checked ? checkedGradient : null
 
     Behavior on color { ColorAnimation { duration: 120 } }
 
