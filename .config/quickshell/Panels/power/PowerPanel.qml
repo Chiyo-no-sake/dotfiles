@@ -27,6 +27,11 @@ Panel {
   // Index the keyboard cursor/pending selection points at; -1 = follow the
   // live profile. h/l moves it through the pills, Enter/click applies.
   property int tunedPending: -1
+  // True once the cursor was armed by the KEYBOARD. Hover also arms the
+  // cursor (so j/k continues from under the pointer), but a hover-armed
+  // cursor disarms on mouse-out — otherwise the last-hovered pill keeps
+  // the hover look forever with the pointer gone.
+  property bool cursorFromKeyboard: false
   readonly property var tunedProfiles: [
     { id: "throughput-performance", label: "Performance", glyph: "󰓅" },
     { id: "balanced", label: "Balanced", glyph: "󰗑" },
@@ -85,6 +90,7 @@ Panel {
   // Enter — one tuned-adm (potential polkit prompt) per deliberate change.
   function stepTunedSelection(delta) {
     if (!tunedAvailable) return
+    cursorFromKeyboard = true
     var base = tunedSelectedIndex
     var count = tunedProfiles.length
     tunedPending = ((base + (delta >= 0 ? 1 : -1)) % count + count) % count
@@ -326,6 +332,22 @@ Panel {
   }
 
   // tuned-adm apply — one profile switch per run; polkit may prompt.
+  // Boot races: quickshell's autostart can beat tuned.service (empty
+  // `tuned-adm active` → POWER PROFILE hidden) and UPower's displayDevice.
+  // Retry both briefly; the first successful probe wins and the open-time
+  // refresh takes over from there.
+  property int bootRetries: 0
+  Timer {
+    interval: 3000
+    running: root.bootRetries < 20 && (!root.tunedAvailable || !root.batteryPresent)
+    repeat: true
+    onTriggered: {
+      root.bootRetries++
+      if (!root.tunedAvailable) root.refreshTuned()
+      if (root.batteryPresent && !root.batteryInfo) root.refresh()
+    }
+  }
+
   Process {
     id: actionProc
     onExited: {
@@ -373,7 +395,13 @@ Panel {
     onTriggered: root.reconcileAmphetamine()
   }
 
-  onTunedProfileChanged: tunedPending = -1
+  onTunedProfileChanged: {
+    tunedPending = -1
+    // A click-apply came from the mouse; release the hover-armed cursor so
+    // the newly active pill doesn't keep the cursor/hover paint. Keyboard
+    // applies keep the cursor for continued h/l navigation.
+    if (!cursorFromKeyboard) cursorActive = false
+  }
 
   Timer { interval: 5000; running: root.opened; repeat: true; onTriggered: { root.refresh(); root.refreshTuned() } }
 
@@ -450,7 +478,11 @@ Panel {
       id: keyCatcher
       anchors.fill: parent
       onMoveRequested: function(dx, dy) {
-        if (!root.cursorActive) { root.cursorActive = true; return }
+        if (!root.cursorActive) {
+          root.cursorActive = true
+          root.cursorFromKeyboard = true
+          return
+        }
         var delta = dx !== 0 ? dx : dy
         if (delta !== 0) root.stepTunedSelection(delta)
       }
@@ -747,9 +779,16 @@ Panel {
 
     onClicked: root.applyTunedProfile(profile.id)
     onHovered: function(isHovered) {
-      if (!isHovered) return
-      root.cursorActive = true
-      root.tunedPending = pill.pillIndex
+      if (isHovered) {
+        root.cursorActive = true
+        root.cursorFromKeyboard = false
+        root.tunedPending = pill.pillIndex
+      } else if (!root.cursorFromKeyboard && root.tunedPending === pill.pillIndex) {
+        // Hover-armed cursor disarms with the pointer so the pill returns
+        // to its active styling; keyboard arrows re-arm it.
+        root.tunedPending = -1
+        root.cursorActive = false
+      }
     }
   }
 
