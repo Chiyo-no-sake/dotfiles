@@ -34,10 +34,6 @@
       "headers": {
         "Authorization": "Bearer {env:SARTIQ_API_MCP_TOKEN}"
       }
-    },
-    "serena": {
-      "type": "remote",
-      "url": "http://127.0.0.1:9121/mcp"
     }
   },
   "plugin": [
@@ -51,6 +47,9 @@
       "path": "/home/kalu/.config/opencode/sq-dev/references/quality",
       "description": "sq-dev quality canon (glossary, React patterns) used by the professor / refactor / review skills."
     }
+  },
+  "tui": {
+    "auto_scroll": false
   }
   // <<< sq-dev <<<
 }

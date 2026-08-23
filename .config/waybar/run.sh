@@ -3,6 +3,6 @@
 killall waybar
 
 cd "$(dirname "$0")" || exit
-sh ./makeStyle.sh``
+sh ./makeStyle.sh
 
 waybar &

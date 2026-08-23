@@ -1,0 +1,18 @@
+[Unit]
+# Keeps the cage units (tsc-cage.service, pytest-cage.service) populated:
+# every second, dev-tool processes (tsc, `*run quality*` chains, pytest via
+# uv or venv) are migrated — with their whole subtree — into their cage.
+# Shell wrappers can't intercept these (agents spawn non-interactive shells
+# and package managers resolve node_modules/.bin paths directly), hence this
+# watcher.
+Description=Migrate dev-tool processes (tsc, quality, pytest) into resource cages
+Wants=tsc-cage.service pytest-cage.service
+After=tsc-cage.service pytest-cage.service
+
+[Service]
+ExecStart=%h/dotfiles/scripts/runtime/dev-cage-watcher.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

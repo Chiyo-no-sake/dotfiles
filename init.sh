@@ -4,6 +4,19 @@
 alias vi=nvim
 alias vim=nvim
 alias cd=z
+alias pi=omp
+
+# opencode: run inside a cgroup-capped systemd scope so one runaway session
+# (or many concurrent ones) can't starve the machine. opencode.slice sets the
+# fleet-wide ceiling (6 cores / 20 GiB); each launch adds a per-scope cap of
+# 1.5 cores / 4 GiB. Slice file: ~/.config/systemd/user/opencode.slice
+opencode() {
+  systemd-run --user --scope --slice=opencode.slice \
+    -p CPUQuota=150% -p MemoryMax=4G -p TasksMax=512 \
+    /home/kalu/.opencode/bin/opencode "$@"
+}
+opc() { opencode --auto "$@"; }
+
 # Yazi wrapper: changes cwd on exit
 function r() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
@@ -112,4 +125,3 @@ eval "$(direnv hook zsh)"
 # ~/.bun/_bun's compinit, which then no-ops since compinit is already loaded.
 fpath=("$HOME/.local/share/zsh/site-functions" $fpath)
 autoload -Uz compinit && compinit
-

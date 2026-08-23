@@ -18,6 +18,7 @@
       "custom/network-speed",
       "pulseaudio",
       "custom/bluetooth",
+      "custom/clipboard",
       "tray",
       "custom/visualizer",
       "custom/amphetamine",
@@ -70,6 +71,17 @@
         "format": "",
         "escape": "true",
         "on-click": "BEMOJI_PICKER_CMD=\"fuzzel --font CaskaydiaCove Nerd Font -d\" bemoji"
+    },
+    "custom/clipboard": {
+      "format": "{}",
+      "interval": 5,
+      "exec": "$HOME/dotfiles/.config/waybar/modules/clipboard.sh",
+      "on-click": "$HOME/dotfiles/scripts/runtime/clipboard-history.sh",
+      "on-click-middle": "$HOME/dotfiles/scripts/runtime/clipboard-history.sh del",
+      "on-click-right": "$HOME/dotfiles/scripts/runtime/clipboard-history.sh wipe",
+      "exec-on-event": true,
+      "return-type": "json",
+      "tooltip": true
     },
     "custom/cc": {
         "format": " 󰄛 ",

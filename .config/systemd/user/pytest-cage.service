@@ -1,0 +1,16 @@
+[Unit]
+# Cage for pytest runs (uv run pytest, .venv/bin/pytest, python -m pytest).
+# The backend suite runs xdist with -n 6 (main + 6 workers ≈ 7 cores), so the
+# ceiling is 8 cores / 8 GiB — enough headroom to avoid OOM-killing a legit
+# run while still keeping the machine responsive. Populated by
+# dev-cage-watcher.service.
+Description=Resource cage for pytest processes (8 cores / 8 GiB)
+
+[Service]
+ExecStart=/usr/bin/sleep infinity
+CPUQuota=800%
+MemoryMax=8G
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

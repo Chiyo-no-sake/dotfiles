@@ -1,0 +1,17 @@
+[Unit]
+# Empty resource cage for the TS quality toolchain: tsc itself and the whole
+# `bun run quality` / `npm run quality` pipeline (dedupe, prettier, depcruise,
+# eslint). The watcher (dev-cage-watcher.service) migrates matching processes
+# — with their subtrees — into this cgroup, so the limits apply no matter how
+# they were launched. The sleep is just a placeholder to keep the cgroup
+# alive; it costs nothing.
+Description=Resource cage for tsc and quality-pipeline processes (4 cores / 4 GiB)
+
+[Service]
+ExecStart=/usr/bin/sleep infinity
+CPUQuota=400%
+MemoryMax=4G
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

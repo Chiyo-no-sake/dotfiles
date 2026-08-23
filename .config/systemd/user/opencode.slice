@@ -1,0 +1,8 @@
+[Slice]
+# Aggregate ceiling across ALL opencode sessions launched into this slice
+# (via the opencode()/opc() shell wrappers). Each session is additionally
+# capped per-scope (CPUQuota=150% etc.); this slice caps the whole fleet.
+# 600% = 6 cores, 20G RAM, 2048 tasks. Bump to taste.
+CPUQuota=600%
+MemoryMax=20G
+TasksMax=2048
