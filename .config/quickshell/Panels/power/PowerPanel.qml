@@ -32,11 +32,32 @@ Panel {
   // cursor disarms on mouse-out — otherwise the last-hovered pill keeps
   // the hover look forever with the pointer gone.
   property bool cursorFromKeyboard: false
-  readonly property var tunedProfiles: [
-    { id: "throughput-performance", label: "Performance", glyph: "󰓅" },
+  // Base pill set. tuned ≥2.24 switches dynamically between `balanced` and
+  // `balanced-battery` based on the power source, so the battery variant is
+  // first-class here; any OTHER active profile (latency-performance, a
+  // custom one, ...) gets an ad-hoc pill below so the active state is
+  // always representable.
+  readonly property var tunedBaseProfiles: [
+    { id: "powersave", label: "Power Save", glyph: "󰌪" },
+    { id: "balanced-battery", label: "Battery", glyph: "󰁺" },
     { id: "balanced", label: "Balanced", glyph: "󰗑" },
-    { id: "powersave", label: "Power Save", glyph: "󰌪" }
+    { id: "throughput-performance", label: "Performance", glyph: "󰓅" }
   ]
+  readonly property var tunedProfiles: {
+    var list = tunedBaseProfiles.slice()
+    if (tunedProfile !== "") {
+      var known = false
+      for (var i = 0; i < list.length; i++)
+        if (list[i].id === tunedProfile) { known = true; break }
+      if (!known) {
+        var pretty = tunedProfile.split("-").map(function(word) {
+          return word.charAt(0).toUpperCase() + word.slice(1)
+        }).join(" ")
+        list.push({ id: tunedProfile, label: pretty, glyph: "󰐥" })
+      }
+    }
+    return list
+  }
   readonly property int tunedCurrentIndex: {
     for (var i = 0; i < tunedProfiles.length; i++)
       if (tunedProfiles[i].id === tunedProfile) return i
